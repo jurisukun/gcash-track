@@ -1,50 +1,66 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
+import { format } from "date-fns";
 
-const db = SQLite.openDatabase('mydatabase.db');
+const db = SQLite.openDatabase("mydatabase.db");
 
 // Function to initialize the database
 const initDatabase = () => {
-  db.transaction(tx => {
+  db.transaction((tx) => {
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS gcash (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, category TEXT CHECK (category IN ('cashin', 'cashout', 'load', 'others')));",
+      "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')));",
       [],
       () => {
-        console.log('Database initialized');
+        console.log("Database initialized");
       },
-      error => {
-        console.error('Error initializing database', error);
+      (error) => {
+        console.error("Error initializing database", error);
       }
     );
-
   });
 };
 
-const insertRecord=(data)=>{
-  const {description, date, amount, type} = data;
-  if(!description || !date || !amount || !type){
-    return false;
-  }
-  db.transaction(tx => {
-    tx.executeSql(
-      "INSERT INTO gcash (description, date, amount, type) VALUES (?,?,?,?);",
-      [description, date, amount, type],
-      () => {
-        console.log('Insertion successful');
-      },
-      error => {
-        console.error('Error inserting new record', error);
-      }
-    );
-
+const insertRecord = (data) => {
+  return new Promise((resolve, reject) => {
+    const { description, date, amount, category } = data;
+    if (!description || !date || !amount || !category) {
+      return false;
+    }
+    console.log("data", data);
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO transactions (description, date, amount, category) VALUES (?,?,?,?);",
+        [description, format(date, "MMM dd, yyyy"), +amount, category],
+        () => {
+          console.log("Insertion successful");
+          resolve("success");
+        },
+        (error) => {
+          console.error("Error inserting new record", error);
+          reject(error);
+        }
+      );
+    });
   });
-}
+};
+
 const getAllRecords = () => {
-  db.transaction(tx => {
-    tx.executeSql("SELECT * FROM gcash;", [], (_, { rows }) =>{
-      console.log('Query successful');
-      console.log(rows);
-      return rows;
-    })
-  })
-}
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM transactions;",
+        [],
+        (_, { rows }) => {
+          if (rows) {
+            console.log("Query successful");
+            resolve(rows?._array);
+          }
+        },
+        (error) => {
+          console.error("Error querying database", error);
+          reject(error);
+        }
+      );
+    });
+  });
+};
 export { db, initDatabase, insertRecord, getAllRecords };

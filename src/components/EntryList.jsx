@@ -1,50 +1,74 @@
-import React from 'react';
-import { Button, Icon, List, ListItem } from '@ui-kitten/components';
-import { StyleSheet } from 'react-native';
+import React, { useEffect } from "react";
+import {
+  Button,
+  Icon,
+  List,
+  ListItem,
+  Layout,
+  Text,
+} from "@ui-kitten/components";
 
+import { View } from "react-native";
+import { StyleSheet } from "react-native";
 
-
-const data = new Array(38).fill({
-  title: 'Title for Item',
-  description: 'Description for Item',
-});
+import { useQuery } from "@tanstack/react-query";
+import { getAllRecords } from "../lib/sqlite";
 
 export const ListAccessoriesShowcase = () => {
+  const { isError, isLoading, data } = useQuery({
+    queryKey: ["fetchrecords"],
+    queryFn: () => getAllRecords().then((res) => res),
+  });
+  if (isError) {
+    return (
+      <Layout
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text category="h4">Error fetching records...</Text>
+      </Layout>
+    );
+  }
 
-  const renderItemAccessory = () => (
-    <Button size='tiny'>
-FOLLOW
-    </Button>
-  );
+  console.log("data", data);
+  const renderItemAccessory = (data) => {
+    if (data.category !== "Cash in") {
+      return (
+        <View className="flex flex-row gap-8 px-4 items-center justify-center">
+          <Text category="s2">{data.category}</Text>
+          <Text status="danger" category="h6">
+            ₱{data.amount}
+          </Text>
+        </View>
+      );
+    } else {
+      return (
+        <View className="flex flex-row gap-8 px-4 items-center justify-center">
+          <Text category="s2">{data.category}</Text>
+          <Text status="success" category="h6">
+            ₱{data.amount}
+          </Text>
+        </View>
+      );
+    }
+  };
 
-  const renderItemIcon = (props) => (
-    <Icon
-      {...props}
-      name='person'
-    />
-  );
+  const renderItemIcon = (props) => <Icon {...props} name="person" />;
 
-  const renderItem = ({ item, index })=> (
+  const renderItem = ({ item, index }) => (
     <ListItem
-      title={item.title}
-      description={`${item.description} ${index + 1}`}
+      title={item.description}
+      description={`${item.date}`}
       accessoryLeft={renderItemIcon}
-      accessoryRight={renderItemAccessory}
+      accessoryRight={() => renderItemAccessory(item)}
     />
   );
 
-  return (
-    <List
-      style={styles.container}
-      data={data}
-      renderItem={renderItem}
-    />
-  );
+  return <List style={styles.container} data={data} renderItem={renderItem} />;
 };
 
 const styles = StyleSheet.create({
   container: {
-   flex:1,
-    width:'100%',
+    flex: 1,
+    width: "100%",
   },
 });

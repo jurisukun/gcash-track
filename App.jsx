@@ -1,26 +1,25 @@
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as eva from "@eva-design/eva";
+import { ApplicationProvider, IconRegistry } from "@ui-kitten/components";
+import { EvaIconsPack } from "@ui-kitten/eva-icons";
+import { FontAwesomeIconsPack } from "./assets/icons/font-awesome";
+import { default as theme } from "./custom-theme.json"; // <-- Import app theme
+import { AppNavigator } from "./src/components/Drawer";
+import { initDatabase } from "./src/lib/sqlite";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as eva from '@eva-design/eva';
-import { ApplicationProvider, IconRegistry, Layout, Text as TextKit } from '@ui-kitten/components';
-import { EvaIconsPack } from '@ui-kitten/eva-icons';
-import { FontAwesomeIconsPack } from './assets/icons/font-awesome';
-import { default as theme } from './custom-theme.json'; // <-- Import app theme
-import { AppNavigator } from './src/components/Drawer';
+initDatabase();
 
-import { getAllRecords, initDatabase } from './src/lib/sqlite';
-
+const queryClient = new QueryClient();
 export default function App() {
-  initDatabase();
-  getAllRecords()
-  
-  
   return (
-    <SafeAreaView style={{flex:1}}>
-      <IconRegistry  icons={[EvaIconsPack, FontAwesomeIconsPack]}/>
-    <ApplicationProvider {...eva} theme={{...eva.dark, ...theme}}>
-      
-     <AppNavigator/>
-    </ApplicationProvider>
-      </SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <IconRegistry icons={[EvaIconsPack, FontAwesomeIconsPack]} />
+        <ApplicationProvider {...eva} theme={{ ...eva.dark, ...theme }}>
+          <AppNavigator />
+        </ApplicationProvider>
+      </QueryClientProvider>
+    </SafeAreaView>
   );
 }
