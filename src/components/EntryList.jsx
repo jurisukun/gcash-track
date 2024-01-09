@@ -14,22 +14,21 @@ import { StyleSheet } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { getAllRecords } from "../lib/sqlite";
 
-export const ListAccessoriesShowcase = () => {
-  const { isError, isLoading, data } = useQuery({
-    queryKey: ["fetchrecords"],
-    queryFn: () => getAllRecords().then((res) => res),
-  });
-  if (isError) {
-    return (
-      <Layout
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
-        <Text category="h4">Error fetching records...</Text>
-      </Layout>
-    );
-  }
+export const ListAccessoriesShowcase = ({ data }) => {
+  // const { isError, isLoading, data} = useQuery({
+  //   queryKey: ["fetchrecords"],
+  //   queryFn: () => getAllRecords().then((res) => res),
+  // });
+  // if (isError) {
+  //   return (
+  //     <Layout
+  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+  //     >
+  //       <Text category="h4">Error fetching records...</Text>
+  //     </Layout>
+  //   );
+  // }
 
-  console.log("data", data);
   const renderItemAccessory = (data) => {
     if (data.category !== "Cash in") {
       return (

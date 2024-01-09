@@ -7,7 +7,7 @@ const db = SQLite.openDatabase("mydatabase.db");
 const initDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')));",
+      "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, fee NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')));",
       [],
       () => {
         console.log("Database initialized");
@@ -22,14 +22,14 @@ const initDatabase = () => {
 const insertRecord = (data) => {
   return new Promise((resolve, reject) => {
     const { description, date, amount, category } = data;
-    if (!description || !date || !amount || !category) {
+    if (!description || !date || !amount || !category || !+fee) {
       return false;
     }
     console.log("data", data);
     db.transaction((tx) => {
       tx.executeSql(
-        "INSERT INTO transactions (description, date, amount, category) VALUES (?,?,?,?);",
-        [description, format(date, "MMM dd, yyyy"), +amount, category],
+        "INSERT INTO transactions (description, date, amount, category, fee) VALUES (?,?,?,?);",
+        [description, date, +amount, category, fee],
         () => {
           console.log("Insertion successful");
           resolve("success");
@@ -37,6 +37,25 @@ const insertRecord = (data) => {
         (error) => {
           console.error("Error inserting new record", error);
           reject(error);
+        }
+      );
+    });
+  });
+};
+
+export const getRecordsBCategory = (category) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM transactions WHERE category = ?;",
+        [category],
+        (_, { rows }) => {
+          if (rows) {
+            console.log("Query successful");
+            resolve(rows?._array);
+          } else {
+            reject("No records found");
+          }
         }
       );
     });

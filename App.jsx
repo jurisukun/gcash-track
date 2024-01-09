@@ -7,18 +7,30 @@ import { default as theme } from "./custom-theme.json"; // <-- Import app theme
 import { AppNavigator } from "./src/components/Drawer";
 import { initDatabase } from "./src/lib/sqlite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeContext } from "./src/lib/theme-context";
+import { useState } from "react";
 
 initDatabase();
 
 const queryClient = new QueryClient();
+
 export default function App() {
+  const [deftheme, setDefTheme] = useState("light");
+
+  const toggleTheme = () => {
+    const nextTheme = deftheme === "light" ? "dark" : "light";
+    setDefTheme(nextTheme);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <IconRegistry icons={[EvaIconsPack, FontAwesomeIconsPack]} />
-        <ApplicationProvider {...eva} theme={{ ...eva.dark, ...theme }}>
-          <AppNavigator />
-        </ApplicationProvider>
+        <ThemeContext.Provider value={{ deftheme, toggleTheme }}>
+          <ApplicationProvider {...eva} theme={eva[deftheme]}>
+            <AppNavigator />
+          </ApplicationProvider>
+        </ThemeContext.Provider>
       </QueryClientProvider>
     </SafeAreaView>
   );

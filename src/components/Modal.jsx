@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   Button,
@@ -10,26 +10,40 @@ import {
   Datepicker,
   Select,
   SelectItem,
+  OverflowMenu,
+  MenuItem,
+  Divider,
 } from "@ui-kitten/components";
 import { Alert } from "react-native";
 import { insertRecord } from "../lib/sqlite";
 
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 
 export const ModalDialog = () => {
   const [visible, setVisible] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
-  const [data, setData] = React.useState({ date });
+  const [data, setData] = React.useState({
+    date: format(new Date(), "MMM dd, yyyyy"),
+  });
+  const [fee, setFee] = React.useState(0);
+  const [loadOptions, setLoadOptions] = React.useState(false);
 
   const queryClient = useQueryClient();
 
   const checkValues = (data) => {
-    if (!data.description || !data.amount || !data.date || !data.category) {
+    if (
+      !data.description ||
+      !data.amount ||
+      !data.date ||
+      !data.category ||
+      !data.fee
+    ) {
       Alert.alert(
         "Please fill all the fields",
         "Some required fields are empty"
       );
+
       return;
     }
 
@@ -40,7 +54,7 @@ export const ModalDialog = () => {
     mutationFn: insertRecord,
     onSuccess: (data, variables) => {
       setVisible(false);
-      console.log("data", data, "variables", variables);
+
       queryClient.setQueryData(["fetchrecords"], (oldData) => [
         ...oldData,
         variables,
@@ -52,6 +66,34 @@ export const ModalDialog = () => {
   });
 
   const selectoptions = ["Cash in", "Cash out", "Load", "Others"];
+
+  const calculateFee = (data) => {
+    let computedfee = 0;
+    if (
+      (data.category == "Cash in" || data.category == "Cash out") &&
+      data.amount
+    ) {
+      let per250 = Math.floor(data.amount / 250);
+      data.amount % 250 != 0 ? per250++ : per250;
+
+      computedfee = per250 * 5;
+      setFee(computedfee);
+    } else if (data.category == "Load" && data.amount) {
+      console.log("else");
+      console.log(data);
+      if (data.load == "Globe") {
+        computedfee = 3;
+        setFee(computedfee);
+      } else {
+        computedfee = data.amount * 0.02 + 3;
+        setFee(computedfee);
+      }
+    } else {
+      setFee(0);
+      computedfee = 0;
+    }
+    return computedfee;
+  };
 
   return (
     <View className=" h-10">
@@ -81,7 +123,9 @@ export const ModalDialog = () => {
           }}
           header={() => (
             <View className="flex item-center justify-center px-5 h-6">
-              <Text category="h5">Cash in</Text>
+              <Text category="h5">
+                {selectoptions[data.index] ?? "New Record"}
+              </Text>
             </View>
           )}
           footer={() => (
@@ -149,38 +193,143 @@ export const ModalDialog = () => {
                   padding: 5,
                 }}
               />
-              <Input
-                style={{
-                  flex: 1,
-                  height: 50,
-                  borderColor: "black",
-                  borderWidth: 1,
-                }}
-                placeholder="Enter amount"
-                label="Amount"
-                keyboardType="numeric"
-                onChangeText={(nextValue) =>
-                  setData({ ...data, amount: nextValue })
-                }
-                accessoryRight={(props) => (
-                  <Icon name="money" {...props} pack="fontawesome" />
-                )}
-              />
+              <View className="flex flex-row gap-3">
+                <Input
+                  style={{
+                    flex: 1,
+                    height: 50,
+                    borderColor: "black",
+                    borderWidth: 1,
+                  }}
+                  placeholder="Enter amount"
+                  label="Amount"
+                  keyboardType="numeric"
+                  onChangeText={(nextValue) => {
+                    setData({
+                      ...data,
+                      amount: nextValue,
+                      fee: calculateFee({
+                        amount: nextValue,
+                        category: selectoptions[data.index],
+                      }),
+                    });
+                  }}
+                  // accessoryRight={(props) => (
+                  //   <Icon name="money" {...props} pack="fontawesome" />
+                  // )}
+                />
+                <Input
+                  style={{
+                    width: 75,
+                  }}
+                  defaultValue={fee.toString()}
+                  placeholder="Fee"
+                  label={"Fee"}
+                  keyboardType="numeric"
+                  onChangeText={(nextValue) =>
+                    setData({ ...data, fee: nextValue })
+                  }
+                />
+              </View>
+
               <Select
                 placeholder="Select category"
                 label="Type"
-                value={selectoptions[data.index]}
+                value={
+                  data.category == "Load"
+                    ? `${data.category}   (${data.load})`
+                    : selectoptions[data.index]
+                }
                 onSelect={(index) => {
                   setData({
                     ...data,
-                    index: index.row,
-                    category: selectoptions[index.row],
+                    index: index.section,
+                    category: selectoptions[index.section],
+                    fee: calculateFee({
+                      category: selectoptions[index.section],
+                      amount: data.amount,
+                    }),
                   });
                 }}
               >
-                {selectoptions.map((item, index) => (
-                  <SelectItem title={item} key={index} />
-                ))}
+                {selectoptions.map((item, index) => {
+                  if (item == "Load") {
+                    return (
+                      <OverflowMenu
+                        onSelect={(sel) => {
+                          if (sel.row == 0) {
+                            const newdata = {
+                              ...data,
+                              index: 2,
+                              category: "Load",
+                              load: "Globe",
+                            };
+                            setData((prev) => ({
+                              ...prev,
+                              ...newdata,
+                              fee: calculateFee(newdata),
+                            }));
+                          } else {
+                            const newdata = {
+                              ...data,
+                              index: 2,
+                              category: "Load",
+                              load: "Other Network",
+                            };
+                            setData((prev) => ({
+                              ...prev,
+                              ...newdata,
+                              fee: calculateFee(newdata),
+                            }));
+                          }
+                          console.log(data);
+                          console.log(sel);
+                          setLoadOptions(false);
+                        }}
+                        style={{ width: 120, zIndex: 1000 }}
+                        key={index}
+                        visible={loadOptions}
+                        placement={"right"}
+                        anchor={() => (
+                          <View style={{ width: 140 }} key={index}>
+                            <SelectItem
+                              title={item}
+                              key={index}
+                              onPress={() => {
+                                setLoadOptions(true);
+                              }}
+                            />
+                            <Divider />
+                          </View>
+                        )}
+                        onBackdropPress={() => {
+                          setLoadOptions(false);
+                        }}
+                        backdropStyle={{
+                          backgroundColor: "rgba(0,0,0,0.3)",
+                          padding: 5,
+                        }}
+                      >
+                        <MenuItem
+                          title="Globe"
+                          style={{
+                            backgroundColor: "green",
+                          }}
+                        />
+                        <MenuItem
+                          title="Other Network"
+                          style={{ backgroundColor: "orange" }}
+                        />
+                      </OverflowMenu>
+                    );
+                  }
+                  return (
+                    <View key={index}>
+                      <SelectItem title={item} key={index} />
+                      <Divider />
+                    </View>
+                  );
+                })}
               </Select>
             </View>
           </View>
