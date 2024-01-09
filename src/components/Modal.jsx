@@ -21,10 +21,11 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 
 export const ModalDialog = () => {
+  let today = new Date();
   const [visible, setVisible] = React.useState(false);
-  const [date, setDate] = React.useState(new Date());
+  const [date, setDate] = React.useState(today);
   const [data, setData] = React.useState({
-    date: format(new Date(), "MMM dd, yyyyy"),
+    date: format(new Date(), "MMM dd, yyyy"),
   });
   const [fee, setFee] = React.useState(0);
   const [loadOptions, setLoadOptions] = React.useState(false);
@@ -43,7 +44,7 @@ export const ModalDialog = () => {
         "Please fill all the fields",
         "Some required fields are empty"
       );
-
+      console.log("incomplete", data);
       return;
     }
 
@@ -57,8 +58,16 @@ export const ModalDialog = () => {
 
       queryClient.setQueryData(["fetchrecords"], (oldData) => [
         ...oldData,
-        variables,
+        {
+          ...variables,
+          category:
+            variables?.category == "Load"
+              ? `${variables.category}   (${variables.load})`
+              : variables.category,
+        },
       ]);
+      setData({ date: format(new Date(), "MMM dd, yyyy") });
+      setDate(today);
     },
     onError: (error, variables) => {
       Alert.alert("Error", error.message);
@@ -134,7 +143,9 @@ export const ModalDialog = () => {
                 appearance="outline"
                 onPress={() => {
                   setVisible(false);
-                  setData({});
+                  setDate(today);
+                  setData({ date: format(today, "MMM dd, yyyy") });
+                  setFee(0);
                 }}
               >
                 CANCEL
@@ -165,7 +176,7 @@ export const ModalDialog = () => {
                   );
                 }}
                 onChangeText={(nextValue) =>
-                  setData({ ...data, description: nextValue })
+                  setData((prev) => ({ ...prev, description: nextValue }))
                 }
               />
 
@@ -173,10 +184,10 @@ export const ModalDialog = () => {
                 date={date}
                 onSelect={(nextDate) => {
                   setDate(nextDate),
-                    setData({
-                      ...data,
-                      date: format(nextDate, "MMM dd, yyyyy"),
-                    });
+                    setData((prev) => ({
+                      ...prev,
+                      date: format(nextDate, "MMM dd, yyyy"),
+                    }));
                 }}
                 accessoryRight={(props) => {
                   return (
@@ -205,14 +216,14 @@ export const ModalDialog = () => {
                   label="Amount"
                   keyboardType="numeric"
                   onChangeText={(nextValue) => {
-                    setData({
-                      ...data,
+                    setData((prev) => ({
+                      ...prev,
                       amount: nextValue,
                       fee: calculateFee({
                         amount: nextValue,
-                        category: selectoptions[data.index],
+                        category: selectoptions[prev.index],
                       }),
-                    });
+                    }));
                   }}
                   // accessoryRight={(props) => (
                   //   <Icon name="money" {...props} pack="fontawesome" />
@@ -225,9 +236,10 @@ export const ModalDialog = () => {
                   defaultValue={fee.toString()}
                   placeholder="Fee"
                   label={"Fee"}
+                  maxLength={5}
                   keyboardType="numeric"
                   onChangeText={(nextValue) =>
-                    setData({ ...data, fee: nextValue })
+                    setData((prev) => ({ ...prev, fee: nextValue }))
                   }
                 />
               </View>
@@ -241,15 +253,15 @@ export const ModalDialog = () => {
                     : selectoptions[data.index]
                 }
                 onSelect={(index) => {
-                  setData({
-                    ...data,
+                  setData((prev) => ({
+                    ...prev,
                     index: index.section,
                     category: selectoptions[index.section],
                     fee: calculateFee({
                       category: selectoptions[index.section],
-                      amount: data.amount,
+                      amount: prev.amount,
                     }),
-                  });
+                  }));
                 }}
               >
                 {selectoptions.map((item, index) => {
@@ -274,7 +286,7 @@ export const ModalDialog = () => {
                               ...data,
                               index: 2,
                               category: "Load",
-                              load: "Other Network",
+                              load: "Other",
                             };
                             setData((prev) => ({
                               ...prev,
@@ -282,8 +294,7 @@ export const ModalDialog = () => {
                               fee: calculateFee(newdata),
                             }));
                           }
-                          console.log(data);
-                          console.log(sel);
+
                           setLoadOptions(false);
                         }}
                         style={{ width: 120, zIndex: 1000 }}
@@ -305,21 +316,10 @@ export const ModalDialog = () => {
                         onBackdropPress={() => {
                           setLoadOptions(false);
                         }}
-                        backdropStyle={{
-                          backgroundColor: "rgba(0,0,0,0.3)",
-                          padding: 5,
-                        }}
                       >
-                        <MenuItem
-                          title="Globe"
-                          style={{
-                            backgroundColor: "green",
-                          }}
-                        />
-                        <MenuItem
-                          title="Other Network"
-                          style={{ backgroundColor: "orange" }}
-                        />
+                        <MenuItem title="Globe" />
+                        <Divider />
+                        <MenuItem title="Other" />
                       </OverflowMenu>
                     );
                   }

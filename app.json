@@ -4,27 +4,32 @@
     "slug": "gcash-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/finalicon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icons/splashtrackericon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/adaptive-icontrackericon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.jurisu_kun.gcashtracker"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "build": { "babel": { "include": ["@ui-kitten/components"] } }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "917a255b-1227-426f-a459-8f4c16358f00"
+      }
     }
   }
 }

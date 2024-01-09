@@ -1,5 +1,4 @@
 import * as SQLite from "expo-sqlite";
-import { format } from "date-fns";
 
 const db = SQLite.openDatabase("mydatabase.db");
 
@@ -7,7 +6,7 @@ const db = SQLite.openDatabase("mydatabase.db");
 const initDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, fee NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')));",
+      "CREATE TABLE IF NOT EXISTS gtrack (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, fee NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')), load TEXT);",
       [],
       () => {
         console.log("Database initialized");
@@ -21,15 +20,27 @@ const initDatabase = () => {
 
 const insertRecord = (data) => {
   return new Promise((resolve, reject) => {
-    const { description, date, amount, category } = data;
-    if (!description || !date || !amount || !category || !+fee) {
-      return false;
+    const { description, date, amount, category, fee } = data;
+    if (!description || !date || !amount || !category || !fee) {
+      reject("Please fill all fields");
     }
-    console.log("data", data);
+    let sql;
+    let params;
+    if (category === "Load") {
+      const { load } = data;
+      sql =
+        "INSERT INTO gtrack (description, date, amount, category, fee, load) VALUES (?,?,?,?,?,?);";
+      params = [description, date, +amount, category, +fee, load];
+    } else {
+      sql =
+        "INSERT INTO gtrack (description, date, amount, category, fee) VALUES (?,?,?,?,?);";
+      params = [description, date, +amount, category, +fee];
+    }
+    console.log(sql, params);
     db.transaction((tx) => {
       tx.executeSql(
-        "INSERT INTO transactions (description, date, amount, category, fee) VALUES (?,?,?,?);",
-        [description, date, +amount, category, fee],
+        sql,
+        params,
         () => {
           console.log("Insertion successful");
           resolve("success");
@@ -47,7 +58,7 @@ export const getRecordsBCategory = (category) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM transactions WHERE category = ?;",
+        "SELECT * FROM gtrack WHERE category = ?;",
         [category],
         (_, { rows }) => {
           if (rows) {
@@ -66,7 +77,7 @@ const getAllRecords = () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM transactions;",
+        "SELECT * FROM gtrack;",
         [],
         (_, { rows }) => {
           if (rows) {

@@ -6,6 +6,7 @@ import {
   ListItem,
   Layout,
   Text,
+  Divider,
 } from "@ui-kitten/components";
 
 import { View } from "react-native";
@@ -15,51 +16,48 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllRecords } from "../lib/sqlite";
 
 export const ListAccessoriesShowcase = ({ data }) => {
-  // const { isError, isLoading, data} = useQuery({
-  //   queryKey: ["fetchrecords"],
-  //   queryFn: () => getAllRecords().then((res) => res),
-  // });
-  // if (isError) {
-  //   return (
-  //     <Layout
-  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-  //     >
-  //       <Text category="h4">Error fetching records...</Text>
-  //     </Layout>
-  //   );
-  // }
-
   const renderItemAccessory = (data) => {
-    if (data.category !== "Cash in") {
-      return (
-        <View className="flex flex-row gap-8 px-4 items-center justify-center">
-          <Text category="s2">{data.category}</Text>
-          <Text status="danger" category="h6">
+    return (
+      <View className="flex flex-row gap-2 items-center justify-center w-[220px]">
+        <Text
+          category="p2"
+          style={{ width: 90, flex: 1, flexWrap: "nowrap", textAlign: "right" }}
+        >
+          {data.category == "Load"
+            ? `${data.category} (${data.load})`
+            : data.category}
+        </Text>
+        <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
+          <Text
+            status={data.category !== "Cash in" ? "warning" : "success"}
+            category="h6"
+            style={{ fontSize: 16 }}
+          >
             ₱{data.amount}
           </Text>
-        </View>
-      );
-    } else {
-      return (
-        <View className="flex flex-row gap-8 px-4 items-center justify-center">
-          <Text category="s2">{data.category}</Text>
-          <Text status="success" category="h6">
-            ₱{data.amount}
+          <Text
+            category="s2"
+            status={data.category !== "Cash in" ? "warning" : "success"}
+          >
+            {`+${data?.fee ?? "0"}`}
           </Text>
         </View>
-      );
-    }
+      </View>
+    );
   };
 
   const renderItemIcon = (props) => <Icon {...props} name="person" />;
 
   const renderItem = ({ item, index }) => (
-    <ListItem
-      title={item.description}
-      description={`${item.date}`}
-      accessoryLeft={renderItemIcon}
-      accessoryRight={() => renderItemAccessory(item)}
-    />
+    <>
+      <ListItem
+        title={item.description}
+        description={`${item.date}`}
+        accessoryLeft={renderItemIcon}
+        accessoryRight={() => renderItemAccessory(item)}
+      />
+      <Divider />
+    </>
   );
 
   return <List style={styles.container} data={data} renderItem={renderItem} />;

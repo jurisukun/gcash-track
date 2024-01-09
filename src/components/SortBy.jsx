@@ -1,10 +1,11 @@
 import { Select, SelectItem, Text } from "@ui-kitten/components";
 import { View } from "react-native";
 import { useState } from "react";
+
 export default function SortBy({ sortBy, setSortBy }) {
   const [selectedIndex, setSelectedIndex] = useState();
 
-  const options = ["All", "Cash in", "Cashout", "Load", "Others"];
+  const options = ["All", "Cash in", "Cash out", "Load", "Others"];
 
   const renderOption = (title) => <SelectItem key={title} title={title} />;
 
@@ -13,7 +14,7 @@ export default function SortBy({ sortBy, setSortBy }) {
       <Select
         placeholder={<Text>Sort by</Text>}
         selectedIndex={selectedIndex}
-        style={{ width: 130 }}
+        style={{ width: 140 }}
         onSelect={(index) => {
           setSelectedIndex(index);
           setSortBy(options[index.row]);

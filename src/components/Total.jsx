@@ -1,8 +1,13 @@
 import { Layout, Text } from "@ui-kitten/components";
 
 export default function Total({ records }) {
-  const total = records?.data?.reduce((acc, curr) => acc + curr.amount, 0);
-  const fee = records?.data?.reduce((acc, curr) => acc + curr.fee, 0);
+  let total = 0;
+  let fee = 0;
+  records?.data?.map((row) => {
+    total += +row.amount;
+    fee += +row.fee;
+  });
+
   return (
     <Layout
       style={{
@@ -11,18 +16,22 @@ export default function Total({ records }) {
         alignItems: "center",
       }}
     >
-      <Text
-        category="h6"
-        status={records?.category == "Cash in" ? "success" : "danger"}
-      >
-        ₱{total}
-      </Text>
-      <Text
-        category="s2"
-        status={records?.category == "Cash in" ? "success" : "danger"}
-      >
-        ₱{fee}
-      </Text>
+      {records.data.length > 0 && (
+        <>
+          <Text
+            category="h6"
+            status={records?.category == "Cash in" ? "success" : "warning"}
+          >
+            ₱{total}
+          </Text>
+          <Text
+            category="s2"
+            status={records?.category == "Cash in" ? "success" : "warning"}
+          >
+            ₱{fee}
+          </Text>
+        </>
+      )}
     </Layout>
   );
 }

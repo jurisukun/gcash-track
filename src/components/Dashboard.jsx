@@ -6,7 +6,10 @@ import {
   Divider,
   Icon,
   TopNavigationAction,
+  Spinner,
+  Avatar,
 } from "@ui-kitten/components";
+import gcash from "../../assets/g.png";
 import { useState, useContext } from "react";
 
 import { ModalDialog } from "./Modal";
@@ -35,6 +38,20 @@ export default function Dashboard() {
       </Layout>
     );
   }
+  if (isLoading) {
+    return (
+      <Layout
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Spinner status="warning" />
+      </Layout>
+    );
+  }
+
+  let sortedData = data.filter((row) => {
+    if (sortBy == "All") return true;
+    else return row.category == sortBy;
+  });
 
   return (
     <Layout
@@ -46,7 +63,22 @@ export default function Dashboard() {
       }}
     >
       <TopNavigation
-        title="MyApp"
+        title={() => {
+          return (
+            <View className="flex flex-row items-center justify-center gap-2 p-3">
+              <Avatar
+                source={gcash}
+                size="giant"
+                style={{
+                  width: 50,
+                  height: 50,
+                  objectFit: "contain",
+                }}
+              />
+              <Text category="h5">Tracker</Text>
+            </View>
+          );
+        }}
         // style={{
         //   height: 80,
         //   backgroundColor: "violet",
@@ -74,6 +106,7 @@ export default function Dashboard() {
             }}
           />
           <Total
+            category="Cash out"
             records={{
               category: "Cash out",
               data: data.filter((row) => row.category !== "Cash in"),
@@ -90,7 +123,7 @@ export default function Dashboard() {
         </View>
       </View>
       <Divider />
-      <ListAccessoriesShowcase data={data} />
+      <ListAccessoriesShowcase data={sortedData} />
     </Layout>
   );
 }
