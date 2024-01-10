@@ -44,7 +44,7 @@ export const ModalDialog = () => {
         "Please fill all the fields",
         "Some required fields are empty"
       );
-      console.log("incomplete", data);
+
       return;
     }
 
@@ -88,8 +88,6 @@ export const ModalDialog = () => {
       computedfee = per250 * 5;
       setFee(computedfee);
     } else if (data.category == "Load" && data.amount) {
-      console.log("else");
-      console.log(data);
       if (data.load == "Globe") {
         computedfee = 3;
         setFee(computedfee);

@@ -4,7 +4,7 @@
     "slug": "gcash-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/finalicon.png",
+    "icon": "./assets/final.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/icons/splashtrackericon.png",
