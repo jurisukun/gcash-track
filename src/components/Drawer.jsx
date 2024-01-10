@@ -10,6 +10,7 @@ import {
 
 import Options from "./Options";
 import Dashboard from "./Dashboard";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Drawer = createDrawerNavigator();
 
