@@ -23,6 +23,7 @@ import { getAllRecords } from "../lib/sqlite";
 import * as SecureStore from "expo-secure-store";
 
 import { ThemeContext } from "../lib/theme-context";
+import Balance from "./Balance";
 
 export default function Dashboard() {
   const [sortBy, setSortBy] = useState("All");
@@ -34,9 +35,11 @@ export default function Dashboard() {
     queryKey: ["fetchrecords"],
     queryFn: async () => {
       await SecureStore.getItemAsync("usertheme").then((res) => {
-        themeContext.setDefTheme(res);
+        if (res) {
+          themeContext.setDefTheme(res);
+        }
       });
-      return getAllRecords();
+      return getAllRecords().then((res) => res);
     },
   });
   if (isError) {
@@ -97,64 +100,115 @@ export default function Dashboard() {
           height: 80,
         }}
         accessoryRight={() => (
-          <TopNavigationAction
-            icon={(props) => (
-              <Icon
-                style={{ backgroundColor: "black" }}
-                name={themeContext.deftheme == "light" ? "sun" : "moon"}
-                {...props}
-              />
-            )}
-            onPress={async () => {
-              themeContext.toggleTheme();
-              await SecureStore.setItemAsync(
-                "usertheme",
-                themeContext.deftheme == "dark" ? "light" : "dark"
-              );
-            }}
-          />
+          <>
+            <TopNavigationAction
+              icon={(props) => (
+                <Icon
+                  style={{ backgroundColor: "black" }}
+                  name={themeContext.deftheme == "light" ? "sun" : "moon"}
+                  {...props}
+                />
+              )}
+              onPress={async () => {
+                themeContext.toggleTheme();
+                await SecureStore.setItemAsync(
+                  "usertheme",
+                  themeContext.deftheme == "dark" ? "light" : "dark"
+                );
+              }}
+            />
+          </>
         )}
       />
 
       <View className="h-auto flex w-full flex-col space-x-3 gap-3 items-end justify-evenly pb-3">
-        <View className="flex flex-row w-full px-5 justify-between">
-          <Total
-            records={{
-              category: "Cash in",
-              data: data.filter((row) => row.category == "Cash in"),
-            }}
-          />
-          <Total
-            category="Cash out"
-            records={{
-              category: "Cash out",
-              data: data.filter((row) => row.category !== "Cash in"),
-            }}
-          />
-        </View>
+        {/* <View className="flex flex-row w-full px- items-center gap-2 h-[50px]"></View> */}
         <View className="flex flex-row w-full justify-evenly pb-3">
-          <View className="flex  flex-row justify-between w-full px-6">
-            <SortBy sortBy={sortBy} setSortBy={setSortBy} />
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              paddingHorizontal: 15,
+              marginLeft: 10,
+              alignItems: "center",
+              alignContent: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Text
+                category="p1"
+                status="info"
+                style={{ margin: "auto", fontWeight: "800", fontSize: 16 }}
+              >
+                GCash:
+              </Text>
+              <Balance />
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <Text
+                category="p1"
+                style={{ margin: "auto", fontWeight: "800", fontSize: 16 }}
+                status="info"
+              >
+                Cash:
+              </Text>
+              <Balance />
+            </View>
+
             <Button
+              style={{ width: 45, height: 40 }}
               onPress={() => setVisible(true)}
               accessoryLeft={(props) => <Icon {...props} name="plus" />}
               size="small"
               // style={{ height: "100%" }}
-            >
-              Add New
-            </Button>
+            />
           </View>
           <View>
-            <ModalDialog
-              visible={visible}
-              setVisible={setVisible}
-              editdata={editdata}
-              setEditData={setEditData}
-            />
+            {editdata && (
+              <ModalDialog editdata={editdata} setEditData={setEditData} />
+            )}
+            {visible && (
+              <ModalDialog visible={visible} setVisible={setVisible} />
+            )}
           </View>
         </View>
       </View>
       <Divider />
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignContent: "center",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 8,
+          gap: 10,
+        }}
+      >
+        <Total
+          records={{
+            category: "Cash in",
+            data: data.filter((row) => row.category == "Cash in"),
+          }}
+        />
+        <Total
+          category="Cash out"
+          records={{
+            category: "Cash out",
+            data: data.filter((row) => row.category !== "Cash in"),
+          }}
+        />
+        <SortBy sortBy={sortBy} setSortBy={setSortBy} />
+      </View>
       <ListAccessoriesShowcase data={sortedData} setEditData={setEditData} />
     </Layout>
   );

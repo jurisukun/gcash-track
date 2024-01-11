@@ -22,12 +22,14 @@ import { format, toDate } from "date-fns";
 
 export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   let today = new Date();
-
+  console.log(editdata);
   const [date, setDate] = React.useState(today);
-  const [data, setData] = React.useState({
-    date: format(new Date(), "MMM dd, yyyy"),
-  });
-  const [fee, setFee] = React.useState(0);
+  const [data, setData] = React.useState(
+    editdata ?? {
+      date: format(new Date(), "MMM dd, yyyy"),
+    }
+  );
+  const [fee, setFee] = React.useState(editdata ? editdata.fee : 0);
   const [loadOptions, setLoadOptions] = React.useState(false);
 
   const queryClient = useQueryClient();
@@ -71,13 +73,20 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
               },
             ]
           : (oldData) => {
-              oldData[oldData.findIndex((item) => item.id == variables.id)] = {
-                ...variables,
-                category:
-                  variables?.category == "Load"
-                    ? `${variables.category}   (${variables.load})`
-                    : variables.category,
-              };
+              console.log("variables", variables);
+              return oldData.map((item) => {
+                if (item.id == variables.id) {
+                  return {
+                    ...item,
+                    ...variables,
+                    category:
+                      variables?.category == "Load"
+                        ? `${variables.category}   (${variables.load})`
+                        : variables?.category,
+                  };
+                }
+                return item;
+              });
             }
       );
       setData({ date: format(new Date(), "MMM dd, yyyy") });
@@ -134,7 +143,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
     <View className=" h-10">
       <Modal
         style={{ flex: 1 }}
-        visible={visible || editdata ? true : false}
+        visible={editdata ? true : visible ? true : false}
         backdropStyle={styles.backdrop}
         onBackdropPress={() => {
           unset();
@@ -153,8 +162,8 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
             <View className="flex item-center justify-center px-5 h-6">
               <Text category="h5">
                 {`${
-                  editdata?.category ??
                   selectoptions[data.index] ??
+                  editdata?.category ??
                   "New Record"
                 }`}
               </Text>
@@ -256,7 +265,9 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   style={{
                     width: 75,
                   }}
-                  defaultValue={fee.toString()}
+                  defaultValue={
+                    fee.toString() ?? editdata?.fee.toString() ?? null
+                  }
                   placeholder="Fee"
                   label={"Fee"}
                   maxLength={5}

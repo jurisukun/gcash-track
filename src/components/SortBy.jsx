@@ -10,7 +10,7 @@ export default function SortBy({ sortBy, setSortBy }) {
   const renderOption = (title) => <SelectItem key={title} title={title} />;
 
   return (
-    <View>
+    <View className="scale-[0.85]">
       <Select
         placeholder={<Text>Sort by</Text>}
         selectedIndex={selectedIndex}
@@ -19,6 +19,7 @@ export default function SortBy({ sortBy, setSortBy }) {
           setSelectedIndex(index);
           setSortBy(options[index.row]);
         }}
+        pla
         value={options[options.indexOf(sortBy)] || options[selectedIndex?.row]}
       >
         {options.map(renderOption)}
