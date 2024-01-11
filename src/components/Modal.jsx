@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
 import {
   Button,
@@ -15,14 +15,14 @@ import {
   Divider,
 } from "@ui-kitten/components";
 import { Alert } from "react-native";
-import { insertRecord } from "../lib/sqlite";
+import { editRecord, insertRecord } from "../lib/sqlite";
 
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { format, set } from "date-fns";
+import { format, toDate } from "date-fns";
 
-export const ModalDialog = () => {
+export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   let today = new Date();
-  const [visible, setVisible] = React.useState(false);
+
   const [date, setDate] = React.useState(today);
   const [data, setData] = React.useState({
     date: format(new Date(), "MMM dd, yyyy"),
@@ -44,28 +44,42 @@ export const ModalDialog = () => {
         "Please fill all the fields",
         "Some required fields are empty"
       );
-      console.log("incomplete", data);
+
       return;
     }
 
-    mutation.mutate(data);
+    mutation.mutate(editdata ? { id: editdata?.id, ...data } : data);
   };
 
   const mutation = useMutation({
-    mutationFn: insertRecord,
+    mutationFn: !editdata ? insertRecord : editRecord,
     onSuccess: (data, variables) => {
-      setVisible(false);
+      unset();
 
-      queryClient.setQueryData(["fetchrecords"], (oldData) => [
-        ...oldData,
-        {
-          ...variables,
-          category:
-            variables?.category == "Load"
-              ? `${variables.category}   (${variables.load})`
-              : variables.category,
-        },
-      ]);
+      queryClient.setQueryData(
+        ["fetchrecords"],
+        !editdata
+          ? (oldData) => [
+              ...oldData,
+              {
+                ...variables,
+                id: data,
+                category:
+                  variables?.category == "Load"
+                    ? `${variables.category}   (${variables.load})`
+                    : variables.category,
+              },
+            ]
+          : (oldData) => {
+              oldData[oldData.findIndex((item) => item.id == variables.id)] = {
+                ...variables,
+                category:
+                  variables?.category == "Load"
+                    ? `${variables.category}   (${variables.load})`
+                    : variables.category,
+              };
+            }
+      );
       setData({ date: format(new Date(), "MMM dd, yyyy") });
       setDate(today);
     },
@@ -75,26 +89,38 @@ export const ModalDialog = () => {
   });
 
   const selectoptions = ["Cash in", "Cash out", "Load", "Others"];
+  const unset = () => {
+    visible ? setVisible(false) : null;
+    setDate(today);
+    setData({ date: format(today, "MMM dd, yyyy") });
+    setFee(0);
+    editdata ? setEditData() : null;
+  };
 
+  const defaultData = (property) => {
+    if (property == "date") {
+      return editdata ? new Date(editdata[property]) : today;
+    }
+
+    return editdata ? editdata[property] : "";
+  };
   const calculateFee = (data) => {
     let computedfee = 0;
     if (
       (data.category == "Cash in" || data.category == "Cash out") &&
-      data.amount
+      +data.amount
     ) {
-      let per250 = Math.floor(data.amount / 250);
-      data.amount % 250 != 0 ? per250++ : per250;
+      let per250 = Math.floor(+data.amount / 250);
+      +data.amount % 250 != 0 ? per250++ : per250;
 
       computedfee = per250 * 5;
       setFee(computedfee);
-    } else if (data.category == "Load" && data.amount) {
-      console.log("else");
-      console.log(data);
+    } else if (data.category == "Load" && +data.amount) {
       if (data.load == "Globe") {
         computedfee = 3;
         setFee(computedfee);
-      } else {
-        computedfee = data.amount * 0.02 + 3;
+      } else if (data.load == "Other") {
+        computedfee = +data.amount * 0.02 + 3;
         setFee(computedfee);
       }
     } else {
@@ -106,20 +132,13 @@ export const ModalDialog = () => {
 
   return (
     <View className=" h-10">
-      <Button
-        onPress={() => setVisible(true)}
-        accessoryLeft={(props) => <Icon {...props} name="plus" />}
-        size="small"
-        style={{ height: "100%" }}
-      >
-        Add New
-      </Button>
-
       <Modal
         style={{ flex: 1 }}
-        visible={visible}
+        visible={visible || editdata ? true : false}
         backdropStyle={styles.backdrop}
-        onBackdropPress={() => setVisible(false)}
+        onBackdropPress={() => {
+          unset();
+        }}
       >
         <Card
           disabled={true}
@@ -133,7 +152,11 @@ export const ModalDialog = () => {
           header={() => (
             <View className="flex item-center justify-center px-5 h-6">
               <Text category="h5">
-                {selectoptions[data.index] ?? "New Record"}
+                {`${
+                  editdata?.category ??
+                  selectoptions[data.index] ??
+                  "New Record"
+                }`}
               </Text>
             </View>
           )}
@@ -142,16 +165,13 @@ export const ModalDialog = () => {
               <Button
                 appearance="outline"
                 onPress={() => {
-                  setVisible(false);
-                  setDate(today);
-                  setData({ date: format(today, "MMM dd, yyyy") });
-                  setFee(0);
+                  unset();
                 }}
               >
                 CANCEL
               </Button>
               <Button style={{ width: 100 }} onPress={() => checkValues(data)}>
-                SAVE
+                {editdata ? "EDIT" : "SAVE"}
               </Button>
             </View>
           )}
@@ -165,6 +185,7 @@ export const ModalDialog = () => {
                   borderColor: "black",
                   borderWidth: 1,
                 }}
+                defaultValue={defaultData("description")}
                 placeholder="Enter details"
                 label="Description"
                 multiline={true}
@@ -212,6 +233,7 @@ export const ModalDialog = () => {
                     borderColor: "black",
                     borderWidth: 1,
                   }}
+                  defaultValue={defaultData("amount").toString()}
                   placeholder="Enter amount"
                   label="Amount"
                   keyboardType="numeric"
@@ -219,10 +241,11 @@ export const ModalDialog = () => {
                     setData((prev) => ({
                       ...prev,
                       amount: nextValue,
-                      fee: calculateFee({
-                        amount: nextValue,
-                        category: selectoptions[prev.index],
-                      }),
+                    }));
+
+                    setData((prev) => ({
+                      ...prev,
+                      fee: calculateFee(prev),
                     }));
                   }}
                   // accessoryRight={(props) => (
@@ -245,7 +268,11 @@ export const ModalDialog = () => {
               </View>
 
               <Select
-                placeholder="Select category"
+                placeholder={
+                  editdata?.category == "Load"
+                    ? `${editdata?.category + `   (${editdata?.load})`}`
+                    : "Select category"
+                }
                 label="Type"
                 value={
                   data.category == "Load"
@@ -269,32 +296,28 @@ export const ModalDialog = () => {
                     return (
                       <OverflowMenu
                         onSelect={(sel) => {
+                          let newdata = {};
                           if (sel.row == 0) {
-                            const newdata = {
-                              ...data,
+                            newdata = {
                               index: 2,
                               category: "Load",
                               load: "Globe",
                             };
-                            setData((prev) => ({
-                              ...prev,
-                              ...newdata,
-                              fee: calculateFee(newdata),
-                            }));
                           } else {
-                            const newdata = {
-                              ...data,
+                            newdata = {
                               index: 2,
                               category: "Load",
                               load: "Other",
                             };
-                            setData((prev) => ({
-                              ...prev,
-                              ...newdata,
-                              fee: calculateFee(newdata),
-                            }));
                           }
-
+                          setData((prev) => ({
+                            ...prev,
+                            ...newdata,
+                          }));
+                          setData((prev) => ({
+                            ...prev,
+                            fee: calculateFee(prev),
+                          }));
                           setLoadOptions(false);
                         }}
                         style={{ width: 120, zIndex: 1000 }}

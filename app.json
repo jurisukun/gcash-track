@@ -4,10 +4,10 @@
     "slug": "gcash-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/finalicon.png",
+    "icon": "./assets/finalicons/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/icons/splashtrackericon.png",
+      "image": "./assets/finalicons/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,10 +17,15 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icontrackericon.png",
+        "foregroundImage": "./assets/finalicons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.jurisu_kun.gcashtracker"
+      "package": "com.jurisu_kun.gcashtracker",
+      "permissions": [
+        "android.permission.NETWORK_ACCESS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",

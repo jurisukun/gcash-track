@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import {
   Button,
   Icon,
@@ -11,38 +11,43 @@ import {
 
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
+import { ModalDialog } from "./Modal";
 
-import { useQuery } from "@tanstack/react-query";
-import { getAllRecords } from "../lib/sqlite";
-
-export const ListAccessoriesShowcase = ({ data }) => {
+export const ListAccessoriesShowcase = ({ data, setEditData }) => {
   const renderItemAccessory = (data) => {
     return (
-      <View className="flex flex-row gap-2 items-center justify-center w-[220px]">
-        <Text
-          category="p2"
-          style={{ width: 90, flex: 1, flexWrap: "nowrap", textAlign: "right" }}
-        >
-          {data.category == "Load"
-            ? `${data.category} (${data.load})`
-            : data.category}
-        </Text>
-        <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
+      <>
+        <View className="flex flex-row gap-2 items-center justify-center w-[220px]">
           <Text
-            status={data.category !== "Cash in" ? "warning" : "success"}
-            category="h6"
-            style={{ fontSize: 16 }}
+            category="p2"
+            style={{
+              width: 90,
+              flex: 1,
+              flexWrap: "nowrap",
+              textAlign: "right",
+            }}
           >
-            ₱{data.amount}
+            {data.category == "Load"
+              ? `${data.category} (${data.load})`
+              : data.category}
           </Text>
-          <Text
-            category="s2"
-            status={data.category !== "Cash in" ? "warning" : "success"}
-          >
-            {`+${data?.fee ?? "0"}`}
-          </Text>
+          <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
+            <Text
+              status={data.category !== "Cash in" ? "warning" : "success"}
+              category="h6"
+              style={{ fontSize: 16 }}
+            >
+              ₱{data.amount}
+            </Text>
+            <Text
+              category="s2"
+              status={data.category !== "Cash in" ? "warning" : "success"}
+            >
+              {`+${data?.fee ?? "0"}`}
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   };
 
@@ -51,10 +56,15 @@ export const ListAccessoriesShowcase = ({ data }) => {
   const renderItem = ({ item, index }) => (
     <>
       <ListItem
+        id={item.id}
         title={item.description}
         description={`${item.date}`}
         accessoryLeft={renderItemIcon}
         accessoryRight={() => renderItemAccessory(item)}
+        onPress={() => {
+          console.log("pressed");
+          setEditData(item);
+        }}
       />
       <Divider />
     </>

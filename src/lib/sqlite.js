@@ -41,12 +41,52 @@ const insertRecord = (data) => {
       tx.executeSql(
         sql,
         params,
-        () => {
+        (_, { insertId }) => {
+          console.log(insertId);
           console.log("Insertion successful");
-          resolve("success");
+          resolve(insertId);
         },
         (error) => {
           console.error("Error inserting new record", error);
+          reject(error);
+        }
+      );
+    });
+  });
+};
+
+const editRecord = (data) => {
+  return new Promise((resolve, reject) => {
+    const { description, date, amount, category, fee, id } = data;
+    if (!description || !date || !amount || !category || !fee || !id) {
+      reject("Please fill all fields");
+    }
+    let sql;
+    let params;
+    if (category === "Load") {
+      const { load } = data;
+      if (!load) {
+        reject("Please select network");
+      }
+      sql =
+        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ? WHERE id = ?;";
+      params = [description, date, +amount, category, +fee, load, id];
+    } else {
+      sql =
+        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ? WHERE id = ?;";
+      params = [description, date, +amount, category, +fee, "", id];
+    }
+
+    db.transaction((tx) => {
+      tx.executeSql(
+        sql,
+        params,
+        () => {
+          console.log("Update successful");
+          resolve("success");
+        },
+        (error) => {
+          console.error("Error updating new record", error);
           reject(error);
         }
       );
@@ -93,4 +133,4 @@ const getAllRecords = () => {
     });
   });
 };
-export { db, initDatabase, insertRecord, getAllRecords };
+export { db, initDatabase, insertRecord, editRecord, getAllRecords };

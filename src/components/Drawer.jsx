@@ -3,14 +3,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import {
   Drawer as DrawerKit,
   DrawerItem,
-  Layout,
-  Text as TextKit,
   IndexPath,
 } from "@ui-kitten/components";
 
 import Options from "./Options";
 import Dashboard from "./Dashboard";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Drawer = createDrawerNavigator();
 
@@ -27,17 +25,29 @@ const DrawerContent = ({ navigation, state }) => (
 );
 
 export function AppNavigator() {
+  const insets = useSafeAreaInsets();
   return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        drawerContent={(props) => <DrawerContent {...props} />}
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Drawer.Screen name="Home" component={Dashboard} />
-        <Drawer.Screen name="Options" component={Options} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        <Drawer.Navigator
+          drawerContent={(props) => <DrawerContent {...props} />}
+          screenOptions={{
+            headerShown: false,
+            headerStyle: {
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+            },
+            drawerStyle: {
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+            },
+            sceneContainerStyle: { paddingTop: insets.top },
+          }}
+        >
+          <Drawer.Screen name="Home" component={Dashboard} />
+          <Drawer.Screen name="Options" component={Options} />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </>
   );
 }
