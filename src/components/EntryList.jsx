@@ -12,6 +12,7 @@ import {
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
 import { ModalDialog } from "./Modal";
+import { format, toDate } from "date-fns";
 
 export const ListAccessoriesShowcase = ({ data, setEditData }) => {
   const renderItemAccessory = (data) => {
@@ -54,20 +55,23 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
   const renderItemIcon = (props) => <Icon {...props} name="person" />;
 
   const renderItem = ({ item, index }) => (
-    <>
-      <ListItem
-        id={item.id}
-        title={item.description}
-        description={`${item.date}`}
-        accessoryLeft={renderItemIcon}
-        accessoryRight={() => renderItemAccessory(item)}
-        onPress={() => {
-          console.log("pressed");
-          setEditData(item);
-        }}
-      />
-      <Divider />
-    </>
+    console.log(item),
+    (
+      <>
+        <ListItem
+          id={item.id}
+          title={item.description}
+          description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
+          accessoryLeft={renderItemIcon}
+          accessoryRight={() => renderItemAccessory(item)}
+          onPress={() => {
+            console.log("pressed");
+            setEditData(item);
+          }}
+        />
+        <Divider />
+      </>
+    )
   );
 
   return <List style={styles.container} data={data} renderItem={renderItem} />;

@@ -20,19 +20,27 @@ import { editRecord, insertRecord } from "../lib/sqlite";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { format, toDate } from "date-fns";
 
+import { useRealm, useQuery } from "@realm/react";
+import { GcashTransactions } from "../lib/realm";
+
 export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   let today = new Date();
-  console.log(editdata);
+
   const [date, setDate] = React.useState(today);
   const [data, setData] = React.useState(
     editdata ?? {
-      date: format(new Date(), "MMM dd, yyyy"),
+      date: today,
     }
   );
   const [fee, setFee] = React.useState(editdata ? editdata.fee : 0);
   const [loadOptions, setLoadOptions] = React.useState(false);
 
+  const realm = useRealm();
+  const gcash = useQuery(GcashTransactions);
+
   const queryClient = useQueryClient();
+
+  console.log(gcash);
 
   const checkValues = (data) => {
     if (
@@ -40,7 +48,8 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
       !data.amount ||
       !data.date ||
       !data.category ||
-      !data.fee
+      !data.fee ||
+      !data.payment
     ) {
       Alert.alert(
         "Please fill all the fields",
@@ -49,7 +58,9 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
 
       return;
     }
-
+    realm.write(() => {
+      realm.create("GcashTransactions", GcashTransactions.generate(data));
+    });
     mutation.mutate(editdata ? { id: editdata?.id, ...data } : data);
   };
 
@@ -66,6 +77,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
               {
                 ...variables,
                 id: data,
+
                 category:
                   variables?.category == "Load"
                     ? `${variables.category}   (${variables.load})`
@@ -79,6 +91,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   return {
                     ...item,
                     ...variables,
+
                     category:
                       variables?.category == "Load"
                         ? `${variables.category}   (${variables.load})`
@@ -92,7 +105,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
       setData({ date: format(new Date(), "MMM dd, yyyy") });
       setDate(today);
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       Alert.alert("Error", error.message);
     },
   });
@@ -211,12 +224,12 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
               />
 
               <Datepicker
-                date={date}
+                date={editdata ? toDate(editdata.date) : date}
                 onSelect={(nextDate) => {
                   setDate(nextDate),
                     setData((prev) => ({
                       ...prev,
-                      date: format(nextDate, "MMM dd, yyyy"),
+                      date: nextDate,
                     }));
                 }}
                 accessoryRight={(props) => {
@@ -234,36 +247,44 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   padding: 5,
                 }}
               />
-              <View className="flex flex-row gap-3">
-                <Input
-                  style={{
-                    flex: 1,
-                    height: 50,
-                    borderColor: "black",
-                    borderWidth: 1,
-                  }}
-                  defaultValue={defaultData("amount").toString()}
-                  placeholder="Enter amount"
-                  label="Amount"
-                  keyboardType="numeric"
-                  onChangeText={(nextValue) => {
-                    setData((prev) => ({
-                      ...prev,
-                      amount: nextValue,
-                    }));
+              <Input
+                style={{
+                  flex: 1,
+                  height: 50,
+                  borderColor: "black",
+                  borderWidth: 1,
+                }}
+                defaultValue={defaultData("amount").toString()}
+                placeholder="Enter amount"
+                label="Amount"
+                keyboardType="numeric"
+                onChangeText={(nextValue) => {
+                  setData((prev) => ({
+                    ...prev,
+                    amount: nextValue,
+                  }));
 
-                    setData((prev) => ({
-                      ...prev,
-                      fee: calculateFee(prev),
-                    }));
-                  }}
-                  // accessoryRight={(props) => (
-                  //   <Icon name="money" {...props} pack="fontawesome" />
-                  // )}
-                />
+                  setData((prev) => ({
+                    ...prev,
+                    fee: calculateFee(prev),
+                  }));
+                }}
+                // accessoryRight={(props) => (
+                //   <Icon name="money" {...props} pack="fontawesome" />
+                // )}
+              />
+              <View
+                className="w-full flex flex-row justify-between items-center"
+                style={{
+                  flexDirection: "row",
+                  alignContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
                 <Input
                   style={{
-                    width: 75,
+                    width: 100,
                   }}
                   defaultValue={
                     fee.toString() ?? editdata?.fee.toString() ?? null
@@ -276,18 +297,35 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                     setData((prev) => ({ ...prev, fee: nextValue }))
                   }
                 />
+                <Select
+                  placeholder={
+                    editdata?.payment ?? data.payment ?? "Select payment"
+                  }
+                  value={editdata?.payment ?? data.payment ?? null}
+                  onSelect={(sel) => {
+                    sel.row == 0
+                      ? setData((prev) => ({ ...prev, payment: "PHP" }))
+                      : setData((prev) => ({ ...prev, payment: "Gcash" }));
+                  }}
+                  label="Fee payment"
+                  style={{ width: 120 }}
+                >
+                  <SelectItem title="PHP" value="asdfsa" />
+                  <SelectItem title="Gcash" />
+                </Select>
               </View>
 
               <Select
                 placeholder={
-                  editdata?.category == "Load"
+                  editdata && editdata?.category == "Load"
                     ? `${editdata?.category + `   (${editdata?.load})`}`
-                    : "Select category"
+                    : editdata?.category ?? data.category ?? "Select type"
                 }
                 label="Type"
                 value={
-                  data.category == "Load"
-                    ? `${data.category}   (${data.load})`
+                  data.category == "Load" || editdata?.category == "Load"
+                    ? `${data.category}   (${data.load})` ||
+                      `${editdata.category}   (${editdata.load})`
                     : selectoptions[data.index]
                 }
                 onSelect={(index) => {

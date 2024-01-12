@@ -2,6 +2,10 @@
 
 # dependencies
 node_modules/
+android/*
+android/gradlew
+ android/gradlew.bat
+ android/settings.gradle
 
 # Expo
 .expo/

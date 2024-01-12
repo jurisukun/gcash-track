@@ -190,7 +190,7 @@ export default function Dashboard() {
           alignContent: "center",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingHorizontal: 8,
+          padding: 8,
           gap: 10,
         }}
       >

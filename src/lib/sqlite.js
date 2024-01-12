@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabase("mydatabase.db");
@@ -6,7 +7,7 @@ const db = SQLite.openDatabase("mydatabase.db");
 const initDatabase = () => {
   db.transaction((tx) => {
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS gtrack (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, date TEXT, amount NUMERIC, fee NUMERIC, category TEXT CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')), load TEXT);",
+      "CREATE TABLE IF NOT EXISTS gtrack (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT NOT NULL, date TEXT NOT NULL, amount NUMERIC  NOT NULL, fee NUMERIC NOT NULL, category TEXT  NOT NULL CHECK (category IN ('Cash in', 'Cash out', 'Load', 'Others')), payment TEXT  NOT NULL CHECK (payment IN ('PHP', 'Gcash')), load TEXT);",
       [],
       () => {
         console.log("Database initialized");
@@ -20,21 +21,30 @@ const initDatabase = () => {
 
 const insertRecord = (data) => {
   return new Promise((resolve, reject) => {
-    const { description, date, amount, category, fee } = data;
-    if (!description || !date || !amount || !category || !fee) {
+    const { description, date, amount, category, fee, payment } = data;
+    if (!description || !date || !amount || !category || !fee || !payment) {
       reject("Please fill all fields");
     }
     let sql;
     let params;
+    let formatteddate = date.toString();
     if (category === "Load") {
       const { load } = data;
       sql =
-        "INSERT INTO gtrack (description, date, amount, category, fee, load) VALUES (?,?,?,?,?,?);";
-      params = [description, date, +amount, category, +fee, load];
+        "INSERT INTO gtrack (description, date, amount, category, fee, load, payment) VALUES (?,?,?,?,?,?,?);";
+      params = [
+        description,
+        formatteddate,
+        +amount,
+        category,
+        +fee,
+        load,
+        payment,
+      ];
     } else {
       sql =
-        "INSERT INTO gtrack (description, date, amount, category, fee) VALUES (?,?,?,?,?);";
-      params = [description, date, +amount, category, +fee];
+        "INSERT INTO gtrack (description, date, amount, category, fee,payment) VALUES (?,?,?,?,?,?);";
+      params = [description, formatteddate, +amount, category, +fee, payment];
     }
     console.log(sql, params);
     db.transaction((tx) => {
@@ -57,8 +67,16 @@ const insertRecord = (data) => {
 
 const editRecord = (data) => {
   return new Promise((resolve, reject) => {
-    const { description, date, amount, category, fee, id } = data;
-    if (!description || !date || !amount || !category || !fee || !id) {
+    const { description, date, amount, category, fee, id, payment } = data;
+    if (
+      !description ||
+      !date ||
+      !amount ||
+      !category ||
+      !fee ||
+      !id ||
+      !payment
+    ) {
       reject("Please fill all fields");
     }
     let sql;
@@ -69,12 +87,12 @@ const editRecord = (data) => {
         reject("Please select network");
       }
       sql =
-        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ? WHERE id = ?;";
-      params = [description, date, +amount, category, +fee, load, id];
+        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ?, payment=? WHERE id = ?;";
+      params = [description, date, +amount, category, +fee, load, payment, id];
     } else {
       sql =
-        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ? WHERE id = ?;";
-      params = [description, date, +amount, category, +fee, "", id];
+        "UPDATE gtrack SET description = ?, date = ?, amount = ?, category = ?, fee = ?, load = ? , payment=? WHERE id = ?;";
+      params = [description, date, +amount, category, +fee, "", payment, id];
     }
 
     db.transaction((tx) => {
@@ -121,7 +139,7 @@ const getAllRecords = () => {
         [],
         (_, { rows }) => {
           if (rows) {
-            console.log("Query successful");
+            console.log("Query successful", rows);
             resolve(rows?._array);
           }
         },
