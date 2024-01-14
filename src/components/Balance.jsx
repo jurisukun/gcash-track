@@ -7,22 +7,28 @@ import { CapitalModal } from "./CapitalModal";
 
 export default function Balance({ addTo }) {
   const [visible, setVisible] = useState(false);
+  const capital = useQuery(Capital);
+  const isGcash = addTo == "Gcash";
+
+  const filteredCapital = capital.filtered(`category == "${addTo}"`);
+  const total = filteredCapital.sum("amount");
 
   return (
     <View className=" flex-row gap-1" style={{ alignItems: "center" }}>
-      <Text category="h6" style={{ fontSize: 20 }}>
-        ₱500
+      <Text category="h6" style={{ fontSize: 17 }}>
+        ₱{total}
       </Text>
       <Text
         category="h6"
-        status="success"
         style={{
-          width: 25,
-          height: 25,
+          width: 20,
+          height: 20,
           borderRadius: 50,
-          backgroundColor: "green",
+          backgroundColor: "#77dd77",
           textAlign: "center",
           textAlignVertical: "center",
+          color: "#fff",
+          fontSize: 14,
         }}
         onPress={() => setVisible(true)}
       >

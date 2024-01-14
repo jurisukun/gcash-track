@@ -36,7 +36,7 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
             <Text
               status={data.category !== "Cash in" ? "warning" : "success"}
               category="h6"
-              style={{ fontSize: 16 }}
+              style={{ fontSize: 14 }}
             >
               ₱{data.amount}
             </Text>

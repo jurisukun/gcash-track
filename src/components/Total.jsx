@@ -22,7 +22,7 @@ export default function Total({ records }) {
           <Text
             category="s1"
             status={records?.category == "Cash in" ? "success" : "warning"}
-            style={{ fontWeight: "700", fontSize: 18 }}
+            style={{ fontWeight: "700", fontSize: 16 }}
           >
             ₱{total}
           </Text>

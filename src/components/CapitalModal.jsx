@@ -13,7 +13,6 @@ import { View } from "react-native";
 import { useState } from "react";
 
 import { useRealm, useUser } from "@realm/react";
-import { set } from "date-fns";
 
 export const CapitalModal = ({
   visible,
@@ -31,13 +30,16 @@ export const CapitalModal = ({
 
   return (
     <View>
-      <Modal style={{ flex: 1 }} visible={visible}>
+      <Modal
+        style={{ flex: 1 }}
+        visible={visible}
+        backdropStyle={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      >
         <Card
           style={{
             flex: 1,
             width: 300,
-
-            rowGap: 20,
+            rowGap: 10,
             padding: 5,
             borderRadius: 10,
           }}
@@ -91,56 +93,58 @@ export const CapitalModal = ({
             );
           }}
         >
-          <Input
-            label="Description"
-            placeholder="Enter description"
-            onChangeText={(val) =>
-              setData((prev) => ({ ...prev, description: val }))
-            }
-          />
-          <Input
-            label="Amount"
-            placeholder="Enter amount"
-            onChangeText={(val) =>
-              setData((prev) => ({ ...prev, amount: val }))
-            }
-          />
-          <Datepicker
-            date={data.date}
-            label="Date"
-            placeholder="Pick date"
-            onSelect={(val) => {
-              setData((prev) => ({ ...prev, date: val }));
-            }}
-            accessoryRight={(props) => {
-              return (
-                <Icon {...props} name="calendar">
-                  Today
-                </Icon>
-              );
-            }}
-            placement="right end"
-            backdropStyle={{
-              backgroundColor: "rgba(0,0,0,0.5)",
-              padding: 5,
-            }}
-          />
-          {isExpense && (
-            <Select
-              label="Payment"
-              placeholder="Select payment method"
-              onSelect={(sel) => {
-                if (sel.row) {
-                  setData((prev) => ({ ...prev, category: "PHP" }));
-                } else {
-                  setData((prev) => ({ ...prev, category: "GCash" }));
-                }
+          <View style={{ rowGap: 10 }}>
+            <Input
+              label="Description"
+              placeholder="Enter description"
+              onChangeText={(val) =>
+                setData((prev) => ({ ...prev, description: val }))
+              }
+            />
+            <Input
+              label="Amount"
+              placeholder="Enter amount"
+              onChangeText={(val) =>
+                setData((prev) => ({ ...prev, amount: val }))
+              }
+            />
+            <Datepicker
+              date={data.date}
+              label="Date"
+              placeholder="Pick date"
+              onSelect={(val) => {
+                setData((prev) => ({ ...prev, date: val }));
               }}
-            >
-              <SelectItem title="PHP" />
-              <SelectItem title="GCash" />
-            </Select>
-          )}
+              accessoryRight={(props) => {
+                return (
+                  <Icon {...props} name="calendar">
+                    Today
+                  </Icon>
+                );
+              }}
+              placement="right end"
+              backdropStyle={{
+                backgroundColor: "rgba(0,0,0,0.5)",
+                padding: 5,
+              }}
+            />
+            {isExpense && (
+              <Select
+                label="Payment"
+                placeholder="Select payment method"
+                onSelect={(sel) => {
+                  if (sel.row) {
+                    setData((prev) => ({ ...prev, category: "PHP" }));
+                  } else {
+                    setData((prev) => ({ ...prev, category: "GCash" }));
+                  }
+                }}
+              >
+                <SelectItem title="PHP" />
+                <SelectItem title="GCash" />
+              </Select>
+            )}
+          </View>
         </Card>
       </Modal>
     </View>
