@@ -25,6 +25,26 @@ const DrawerContent = ({ navigation, state }) => (
 );
 
 export function AppNavigator() {
+  // const realm = useRealm();
+  // const user = useUser();
+
+  // async function writeCustomUserData(customUserData) {
+  //   realm.write(() => {
+  //     realm.create(
+  //       CustomUserData,
+  //       CustomUserData.generate(customUserData),
+  //       true
+  //     );
+  //   });
+  // Refresh custom user data once it's been updated on the server
+  //   const customUserData = await user.refreshCustomData();
+  //   console.log(customUserData);
+  // }
+
+  // if (!isLogin) {
+  //   writeCustomUserData(customUserData);
+  // }
+
   const insets = useSafeAreaInsets();
   return (
     <>

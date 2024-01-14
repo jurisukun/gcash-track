@@ -15,7 +15,17 @@ import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RealmProvider } from "@realm/react";
-import { GcashTransactions } from "./src/lib/realm";
+// import { RealmProvider } from "./src/lib/realm";
+import {
+  GcashTransactions,
+  CapitalTransactions,
+  CustomUserData,
+  Capital,
+} from "./src/lib/realm";
+import { AppProvider, UserProvider } from "@realm/react";
+import { RealmFallback } from "./src/components/RealmFallback";
+
+import LoginRegisterinputs from "./src/components/auth/LoginRegisterinputs";
 
 initDatabase();
 const queryClient = new QueryClient();
@@ -28,8 +38,26 @@ export default function App() {
     setDefTheme(nextTheme);
   };
 
+  const realmAccessBehavior = {
+    type: "downloadBeforeOpen",
+    timeOutBehavior: "openLocalRealm",
+    timeOut: 1000,
+  };
+
+  const syncConfigWithErrorHandling = {
+    flexible: true,
+    initialSubscriptions: {
+      update: (subs, realm) => {
+        subs.add(realm.objects("GcashTransactions"));
+      },
+      rerunOnOpen: true,
+    },
+    newRealmFileBehavior: realmAccessBehavior,
+    existingRealmFileBehavior: realmAccessBehavior,
+  };
+
   return (
-    <RealmProvider schema={[GcashTransactions]}>
+    <AppProvider id={"gcash-tracker-app-hfwbl"}>
       <QueryClientProvider client={queryClient}>
         <IconRegistry icons={[EvaIconsPack, FontAwesomeIconsPack]} />
         {deftheme && (
@@ -43,13 +71,27 @@ export default function App() {
                     : eva[deftheme]["color-basic-800"]
                 }
               />
-              <SafeAreaProvider>
-                <AppNavigator />
-              </SafeAreaProvider>
+              <UserProvider fallback={<LoginRegisterinputs />}>
+                <RealmProvider
+                  fallback={<RealmFallback />}
+                  schema={[
+                    GcashTransactions,
+                    CapitalTransactions,
+                    CustomUserData,
+                    Capital,
+                  ]}
+                  schemaVersion={3}
+                  sync={syncConfigWithErrorHandling}
+                >
+                  <SafeAreaProvider>
+                    <AppNavigator />
+                  </SafeAreaProvider>
+                </RealmProvider>
+              </UserProvider>
             </ApplicationProvider>
           </ThemeContext.Provider>
         )}
       </QueryClientProvider>
-    </RealmProvider>
+    </AppProvider>
   );
 }

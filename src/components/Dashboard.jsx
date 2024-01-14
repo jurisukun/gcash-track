@@ -11,61 +11,95 @@ import {
   Button,
 } from "@ui-kitten/components";
 import gcash from "../../assets/g.png";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 
 import { ModalDialog } from "./Modal";
 import { ListAccessoriesShowcase } from "./EntryList";
 import SortBy from "./SortBy";
 import Total from "./Total";
-import { useQuery } from "@tanstack/react-query";
-import { getAllRecords } from "../lib/sqlite";
+// import { useQuery } from "@tanstack/react-query";
+// import { getAllRecords } from "../lib/sqlite";
 
 import * as SecureStore from "expo-secure-store";
 
 import { ThemeContext } from "../lib/theme-context";
 import Balance from "./Balance";
+// import { Subscription } from "realm/dist/bundle";
+import { CapitalTransactions, GcashTransactions, Capital } from "../lib/realm";
+import { useRealm, useQuery as useRealmQuery } from "@realm/react";
 
 export default function Dashboard() {
   const [sortBy, setSortBy] = useState("All");
   const [visible, setVisible] = useState(false);
   const [editdata, setEditData] = useState();
+
+  const [gcashSubscriptions, setGcashSubscriptions] = useState();
   const themeContext = useContext(ThemeContext);
+  const realm = useRealm();
+  const gcashSub = useRealmQuery(GcashTransactions);
+  const capitalSub = useRealmQuery(CapitalTransactions);
+  const addCapitalSub = useRealmQuery(Capital);
 
-  const { isError, isLoading, data } = useQuery({
-    queryKey: ["fetchrecords"],
-    queryFn: async () => {
-      await SecureStore.getItemAsync("usertheme").then((res) => {
-        if (res) {
-          themeContext.setDefTheme(res);
-        }
+  useEffect(() => {
+    const createSubscription = async () => {
+      await gcashSub.subscribe({
+        name: "gcashtransactions",
       });
-      return getAllRecords().then((res) => res);
-    },
-  });
-  if (isError) {
-    return (
-      <Layout
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text category="h4">Error fetching records...</Text>
-      </Layout>
-    );
-  }
-  if (isLoading) {
-    return (
-      <Layout
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
-        <Spinner status="warning" />
-      </Layout>
-    );
-  }
+      await capitalSub.subscribe({
+        name: "capitaltransactions",
+      });
+      await addCapitalSub.subscribe({
+        name: "addcapital",
+      });
+    };
 
-  let sortedData = data.filter((row) => {
+    createSubscription().catch(console.log);
+
+    // const subscription = realm.subscriptions.findByName("gcashtransactions");
+    // console.log("subscription", subscription);
+    // // ... and set it to a stateful variable or manage it in `useEffect`.
+    // setGcashSubscriptions(subscription);
+  }, []);
+
+  const gcashrealmdata = gcashSub.sorted("date", true);
+
+  // console.log("gcashsubs", gcashSubscriptions);
+
+  // const { isError, isLoading, data } = useQuery({
+  //   queryKey: ["fetchrecords"],
+  //   queryFn: async () => {
+  //     await SecureStore.getItemAsync("usertheme").then((res) => {
+  //       if (res) {
+  //         themeContext.setDefTheme(res);
+  //       }
+  //     });
+  //     return getAllRecords().then((res) => res);
+  //   },
+  // });
+  // if (isError) {
+  //   return (
+  //     <Layout
+  //       style={{
+  //         flex: 1,
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //       }}
+  //     >
+  //       <Text category="h4">Error fetching records...</Text>
+  //     </Layout>
+  //   );
+  // }
+  // if (isLoading) {
+  //   return (
+  //     <Layout
+  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+  //     >
+  //       <Spinner status="warning" />
+  //     </Layout>
+  //   );
+  // }
+
+  let sortedData = gcashrealmdata.filter((row) => {
     if (sortBy == "All") return true;
     else return row.category == sortBy;
   });
@@ -75,6 +109,7 @@ export default function Dashboard() {
       style={{
         flex: 1,
         display: "flex",
+
         justifyContent: "center",
         alignItems: "center",
       }}
@@ -121,7 +156,7 @@ export default function Dashboard() {
         )}
       />
 
-      <View className="h-auto flex w-full flex-col space-x-3 gap-3 items-end justify-evenly pb-3">
+      <View className="h-auto flex w-full flex-row space-x-3 gap-3 items-end justify-evenly pb-3">
         {/* <View className="flex flex-row w-full px- items-center gap-2 h-[50px]"></View> */}
         <View className="flex flex-row w-full justify-evenly pb-3">
           <View
@@ -149,7 +184,7 @@ export default function Dashboard() {
               >
                 GCash:
               </Text>
-              <Balance />
+              <Balance addTo={"Gcash"} />
             </View>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
@@ -161,7 +196,7 @@ export default function Dashboard() {
               >
                 Cash:
               </Text>
-              <Balance />
+              <Balance addTo={"Cash"} />
             </View>
 
             <Button
@@ -197,14 +232,14 @@ export default function Dashboard() {
         <Total
           records={{
             category: "Cash in",
-            data: data.filter((row) => row.category == "Cash in"),
+            data: gcashrealmdata.filter((row) => row.category == "Cash in"),
           }}
         />
         <Total
           category="Cash out"
           records={{
             category: "Cash out",
-            data: data.filter((row) => row.category !== "Cash in"),
+            data: gcashrealmdata.filter((row) => row.category !== "Cash in"),
           }}
         />
         <SortBy sortBy={sortBy} setSortBy={setSortBy} />

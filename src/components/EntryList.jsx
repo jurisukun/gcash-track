@@ -55,23 +55,19 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
   const renderItemIcon = (props) => <Icon {...props} name="person" />;
 
   const renderItem = ({ item, index }) => (
-    console.log(item),
-    (
-      <>
-        <ListItem
-          id={item.id}
-          title={item.description}
-          description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
-          accessoryLeft={renderItemIcon}
-          accessoryRight={() => renderItemAccessory(item)}
-          onPress={() => {
-            console.log("pressed");
-            setEditData(item);
-          }}
-        />
-        <Divider />
-      </>
-    )
+    <>
+      <ListItem
+        id={item._id}
+        title={item.description}
+        description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
+        accessoryLeft={renderItemIcon}
+        accessoryRight={() => renderItemAccessory(item)}
+        onPress={() => {
+          setEditData(item);
+        }}
+      />
+      <Divider />
+    </>
   );
 
   return <List style={styles.container} data={data} renderItem={renderItem} />;
