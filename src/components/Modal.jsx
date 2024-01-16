@@ -13,14 +13,12 @@ import {
   OverflowMenu,
   MenuItem,
   Divider,
+  CheckBox,
 } from "@ui-kitten/components";
 import { Alert } from "react-native";
-import { editRecord, insertRecord } from "../lib/sqlite";
+import { format, set, toDate } from "date-fns";
 
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { format, toDate } from "date-fns";
-
-import { useRealm, useQuery, useUser } from "@realm/react";
+import { useRealm, useUser } from "@realm/react";
 import { GcashTransactions } from "../lib/realm";
 
 export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
@@ -30,16 +28,14 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   const [data, setData] = React.useState(
     editdata ?? {
       date: today,
+      isTransfer: false,
     }
   );
   const [fee, setFee] = React.useState(editdata ? editdata.fee : 0);
   const [loadOptions, setLoadOptions] = React.useState(false);
 
   const realm = useRealm();
-  const gcash = useQuery(GcashTransactions);
   const user = useUser();
-
-  const queryClient = useQueryClient();
 
   const checkValues = (data) => {
     if (
@@ -54,6 +50,9 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
         "Please fill all the fields",
         "Some required fields are empty"
       );
+      return;
+    }
+    if (data.category == "Transfer") {
     }
     realm.write(() => {
       !editdata
@@ -68,57 +67,15 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
               amount: +data.amount,
               userId: user.id,
               _id: data._id,
+              fee: +data.fee,
+              updatedAt: today,
+              updatedBy: user.id,
             },
             true
           );
     });
-    mutation.mutate(editdata ? { id: editdata?.id, ...data } : data);
+    unset();
   };
-
-  const mutation = useMutation({
-    mutationFn: !editdata ? insertRecord : editRecord,
-    onSuccess: (data, variables) => {
-      unset();
-
-      queryClient.setQueryData(
-        ["fetchrecords"],
-        !editdata
-          ? (oldData) => [
-              ...oldData,
-              {
-                ...variables,
-                id: data,
-
-                category:
-                  variables?.category == "Load"
-                    ? `${variables.category}   (${variables.load})`
-                    : variables.category,
-              },
-            ]
-          : (oldData) => {
-              return oldData.map((item) => {
-                if (item.id == variables.id) {
-                  return {
-                    ...item,
-                    ...variables,
-
-                    category:
-                      variables?.category == "Load"
-                        ? `${variables.category}   (${variables.load})`
-                        : variables?.category,
-                  };
-                }
-                return item;
-              });
-            }
-      );
-      setData({ date: format(new Date(), "MMM dd, yyyy") });
-      setDate(today);
-    },
-    onError: (error) => {
-      Alert.alert("Error", error.message);
-    },
-  });
 
   const selectoptions = ["Cash in", "Cash out", "Load", "Others"];
   const unset = () => {
@@ -168,28 +125,46 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
         style={{ flex: 1 }}
         visible={editdata ? true : visible ? true : false}
         backdropStyle={styles.backdrop}
-        onBackdropPress={() => {
-          unset();
-        }}
       >
         <Card
           disabled={true}
           style={{
             flex: 1,
             width: 300,
-            rowGap: 20,
+            rowGap: 15,
             padding: 5,
             borderRadius: 10,
           }}
           header={() => (
-            <View className="flex item-center justify-center px-5 h-6">
-              <Text category="h5">
-                {`${
-                  selectoptions[data.index] ??
-                  editdata?.category ??
-                  "New Record"
-                }`}
-              </Text>
+            <View
+              className="flex flex-row item-center justify-between px-5"
+              style={{ alignContent: "center", alignItems: "center" }}
+            >
+              <View>
+                <Text category="h5">
+                  {`${
+                    data.isTransfer
+                      ? "Transfer"
+                      : data.category ?? editdata?.category ?? "New Record"
+                  }`}
+                </Text>
+              </View>
+              <View>
+                <CheckBox
+                  style={{ flexDirection: "column", alignSelf: "flex-end" }}
+                  checked={data.isTransfer}
+                  onChange={(e) => {
+                    setData((prev) => ({
+                      ...prev,
+                      isTransfer: e,
+                      description: e ? "Transfer" : null,
+                      category: null,
+                    }));
+                  }}
+                >
+                  Transfer
+                </CheckBox>
+              </View>
             </View>
           )}
           footer={() => (
@@ -210,6 +185,129 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
         >
           <View className="h-auto space-y-3 ">
             <View style={{ rowGap: 20 }}>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                {data.isTransfer && (
+                  <Select
+                    style={{ flex: 1 }}
+                    value={data.category}
+                    label="Select transfer"
+                    onSelect={(e) => {
+                      if (e.row == 0) {
+                        setData((prev) => ({
+                          ...prev,
+                          category: "Cash out",
+                        }));
+                      } else {
+                        setData((prev) => ({
+                          ...prev,
+
+                          category: "Cash in",
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectItem title="Cash out" />
+                    <SelectItem title="Cash in" />
+                  </Select>
+                )}
+                {!data.isTransfer && (
+                  <Select
+                    placeholder={
+                      editdata && editdata?.category == "Load"
+                        ? `${editdata?.category + `   (${editdata?.load})`}`
+                        : editdata?.category ?? data.category ?? "Select type"
+                    }
+                    label="Type"
+                    value={
+                      data.category == "Load" || editdata?.category == "Load"
+                        ? `${data.category}   (${data.load})` ||
+                          `${editdata.category}   (${editdata.load})`
+                        : data.category
+                    }
+                    onSelect={(index) => {
+                      setData((prev) => ({
+                        ...prev,
+                        index: index.section,
+                        category: selectoptions[index.section],
+                        fee: calculateFee({
+                          category: selectoptions[index.section],
+                          amount: prev.amount,
+                        }),
+                      }));
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    {selectoptions.map((item, index) => {
+                      if (item == "Load") {
+                        return (
+                          <OverflowMenu
+                            onSelect={(sel) => {
+                              let newdata = {};
+                              if (sel.row == 0) {
+                                newdata = {
+                                  index: 2,
+                                  category: "Load",
+                                  load: "Globe",
+                                };
+                              } else {
+                                newdata = {
+                                  index: 2,
+                                  category: "Load",
+                                  load: "Other",
+                                };
+                              }
+                              setData((prev) => ({
+                                ...prev,
+                                ...newdata,
+                              }));
+                              setData((prev) => ({
+                                ...prev,
+                                fee: calculateFee(prev),
+                              }));
+                              setLoadOptions(false);
+                            }}
+                            style={{ width: 120, zIndex: 1000 }}
+                            key={index}
+                            visible={loadOptions}
+                            placement={"right"}
+                            anchor={() => (
+                              <View style={{ width: 140 }} key={index}>
+                                <SelectItem
+                                  title={item}
+                                  key={index}
+                                  onPress={() => {
+                                    setLoadOptions(true);
+                                  }}
+                                />
+                                <Divider />
+                              </View>
+                            )}
+                            onBackdropPress={() => {
+                              setLoadOptions(false);
+                            }}
+                          >
+                            <MenuItem title="Globe" />
+                            <Divider />
+                            <MenuItem title="Other" />
+                          </OverflowMenu>
+                        );
+                      }
+                      return (
+                        <View key={index}>
+                          <SelectItem title={item} key={index} />
+                          <Divider />
+                        </View>
+                      );
+                    })}
+                  </Select>
+                )}
+              </View>
               <Input
                 style={{
                   flex: 1,
@@ -217,7 +315,12 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   borderColor: "black",
                   borderWidth: 1,
                 }}
-                defaultValue={defaultData("description")}
+                disabled={data.isTransfer ? true : false}
+                defaultValue={
+                  data.isTransfer
+                    ? "Transfer"
+                    : defaultData("description") ?? null
+                }
                 placeholder="Enter details"
                 label="Description"
                 multiline={true}
@@ -307,10 +410,8 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                 />
               </View>
               <Select
-                placeholder={
-                  editdata?.payment ?? data.payment ?? "Select payment"
-                }
-                value={editdata?.payment ?? data.payment ?? null}
+                placeholder={data.payment ?? "Select payment"}
+                value={data.payment ?? null}
                 onSelect={(sel) => {
                   sel.row == 0
                     ? setData((prev) => ({ ...prev, payment: "PHP" }))
@@ -319,96 +420,8 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                 label="Fee payment"
                 style={{ flex: 1 }}
               >
-                <SelectItem title="PHP" value="asdfsa" />
+                <SelectItem title="PHP" />
                 <SelectItem title="Gcash" />
-              </Select>
-              <Select
-                placeholder={
-                  editdata && editdata?.category == "Load"
-                    ? `${editdata?.category + `   (${editdata?.load})`}`
-                    : editdata?.category ?? data.category ?? "Select type"
-                }
-                label="Type"
-                value={
-                  data.category == "Load" || editdata?.category == "Load"
-                    ? `${data.category}   (${data.load})` ||
-                      `${editdata.category}   (${editdata.load})`
-                    : selectoptions[data.index]
-                }
-                onSelect={(index) => {
-                  setData((prev) => ({
-                    ...prev,
-                    index: index.section,
-                    category: selectoptions[index.section],
-                    fee: calculateFee({
-                      category: selectoptions[index.section],
-                      amount: prev.amount,
-                    }),
-                  }));
-                }}
-              >
-                {selectoptions.map((item, index) => {
-                  if (item == "Load") {
-                    return (
-                      <OverflowMenu
-                        onSelect={(sel) => {
-                          let newdata = {};
-                          if (sel.row == 0) {
-                            newdata = {
-                              index: 2,
-                              category: "Load",
-                              load: "Globe",
-                            };
-                          } else {
-                            newdata = {
-                              index: 2,
-                              category: "Load",
-                              load: "Other",
-                            };
-                          }
-                          setData((prev) => ({
-                            ...prev,
-                            ...newdata,
-                          }));
-                          setData((prev) => ({
-                            ...prev,
-                            fee: calculateFee(prev),
-                          }));
-                          setLoadOptions(false);
-                        }}
-                        style={{ width: 120, zIndex: 1000 }}
-                        key={index}
-                        visible={loadOptions}
-                        placement={"right"}
-                        anchor={() => (
-                          <View style={{ width: 140 }} key={index}>
-                            <SelectItem
-                              title={item}
-                              key={index}
-                              onPress={() => {
-                                setLoadOptions(true);
-                              }}
-                            />
-                            <Divider />
-                          </View>
-                        )}
-                        onBackdropPress={() => {
-                          setLoadOptions(false);
-                        }}
-                      >
-                        <MenuItem title="Globe" />
-                        <Divider />
-                        <MenuItem title="Other" />
-                      </OverflowMenu>
-                    );
-                  }
-                  return (
-                    <View key={index}>
-                      <SelectItem title={item} key={index} />
-                      <Divider />
-                    </View>
-                  );
-                })}
               </Select>
             </View>
           </View>

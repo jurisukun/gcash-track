@@ -77,13 +77,13 @@ export default function Options() {
           return <View className="bg-white"></View>;
         }}
         onSelect={(index) => {
-          if (index.row == 2) {
+          if (index.row == 0) {
             logOut();
           }
         }}
       >
-        <MenuItem title="optionq" />
-        <MenuItem title="Option2" />
+        {/* <MenuItem title="optionq" />
+        <MenuItem title="Option2" /> */}
         <MenuItem title="Logout" />
       </OverflowMenu>
       <TopNavigation

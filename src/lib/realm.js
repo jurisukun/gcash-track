@@ -8,6 +8,7 @@ export class GcashTransactions extends Realm.Object {
     date,
     category,
     load,
+    isTransfer,
     payment,
     userId,
   }) {
@@ -37,8 +38,10 @@ export class GcashTransactions extends Realm.Object {
       load,
       payment,
       userId,
+      isTransfer,
       createdAt: new Date(),
       updatedAt: new Date(),
+      updatedBy: userId,
     };
   }
 
@@ -55,27 +58,33 @@ export class GcashTransactions extends Realm.Object {
         type: "string",
         optional: false,
       },
+      isTransfer: "bool?",
       load: { type: "string", optional: true },
       payment: { type: "string", optional: false },
       userId: "string",
+      createdAt: "date",
       updatedAt: {
         type: "date",
         default: () => new Date(),
       },
+      updatedBy: "string",
     },
   };
 }
 
 export class CapitalTransactions extends Realm.Object {
-  static generate({ description, amount, date, userId }) {
+  static generate({ description, amount, date, category, isPaid, userId }) {
     return {
       _id: new Realm.BSON.ObjectId(),
       description,
       amount: +amount,
       date,
+      category,
+      isPaid,
       userId,
       createdAt: new Date(),
       updatedAt: new Date(),
+      updatedBy: userId,
     };
   }
 
@@ -88,11 +97,13 @@ export class CapitalTransactions extends Realm.Object {
       amount: "double",
       date: "date",
       category: "string",
+      isPaid: { type: "bool", default: false },
       userId: "string",
       updatedAt: {
         type: "date",
         default: () => new Date(),
       },
+      updatedBy: "string",
     },
   };
 }
@@ -105,8 +116,10 @@ export class Capital extends Realm.Object {
       description,
       amount: +amount,
       category,
+      date: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      updatedBy: userId,
     };
   }
 
@@ -120,10 +133,12 @@ export class Capital extends Realm.Object {
       amount: "double",
       description: "string",
       category: "string",
+      date: "date",
       updatedAt: {
         type: "date",
         default: () => new Date(),
       },
+      updatedBy: "string",
     },
   };
 }
@@ -148,6 +163,7 @@ export class CustomUserData extends Realm.Object {
       firstName: "string",
       lastName: "string",
       userId: "string",
+      createdAt: "date",
       updatedAt: {
         type: "date",
         default: () => new Date(),

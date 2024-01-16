@@ -1,10 +1,11 @@
-import { Layout, Text, Input } from "@ui-kitten/components";
+import { Layout, Text, Input, Icon } from "@ui-kitten/components";
 import { useState } from "react";
 import { View } from "react-native";
 import RegisterButton from "./RegisterButton";
 
 export default LoginRegisterinputs = () => {
   const [dataToSubmit, setDataToSubmit] = useState({ isLogin: true });
+  const [secure, setSecure] = useState(true);
 
   const checkPassword = (pass, confpass, isLogin) => {
     if (pass.trim() !== confpass.trim() && !isLogin) {
@@ -50,7 +51,6 @@ export default LoginRegisterinputs = () => {
               label="Last Name"
               placeholder="Enter last name"
               onChangeText={(val) => {
-                console.log(val);
                 setDataToSubmit((prev) => ({ ...prev, lastName: val }));
               }}
             />
@@ -64,17 +64,38 @@ export default LoginRegisterinputs = () => {
           }
         />
         <Input
+          secureTextEntry={secure}
           label="Password"
-          placeholder="Enterpassword"
+          placeholder="Enter password"
           onChangeText={(val) =>
             setDataToSubmit((prev) => ({ ...prev, password: val }))
+          }
+          accessoryRight={(props) =>
+            secure ? (
+              <Icon
+                {...props}
+                name="eye"
+                onPress={() => {
+                  setSecure(false);
+                }}
+              />
+            ) : (
+              <Icon
+                {...props}
+                name="eye-off"
+                onPress={() => {
+                  setSecure(true);
+                }}
+              />
+            )
           }
         />
 
         {!dataToSubmit.isLogin && (
           <Input
+            secureTextEntry={secure}
             label="Confirm Password"
-            placeholder="Re-enter our password"
+            placeholder="Re-enter password"
             onChangeText={(val) =>
               setDataToSubmit((prev) => ({ ...prev, confirmPassword: val }))
             }

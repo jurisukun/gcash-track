@@ -4,21 +4,14 @@ import { useEffect } from "react";
 import { Alert } from "react-native";
 
 export default Register = ({ data }) => {
-  // const { logInWithAnonymous, result } = useAuth();
-
-  // useEffect(() => {
-  //   logInWithAnonymous();
-  // }, []);
-
   useEffect(() => {
-    try {
-      result.error;
-      if (result.success && result.operation === "register") {
-        logIn({ email, password });
-      }
-    } catch (e) {
-      console.log(e);
-      Alert.alert("Error", result.error.message);
+    console.log(result);
+    if (result.success && result.operation === "register") {
+      logIn({ email, password });
+      return;
+    }
+    if (result.error) {
+      Alert.alert("Error", result.error);
       return;
     }
   }, [result]);
@@ -27,6 +20,13 @@ export default Register = ({ data }) => {
     data;
 
   const { register, result, logIn } = useEmailPasswordAuth();
+
+  try {
+    result;
+  } catch (e) {
+    Alert.alert("Error", result.error);
+    return;
+  }
 
   const performRegistration = () => {
     if (!isLogin) {

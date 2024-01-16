@@ -11,7 +11,7 @@ import {
 
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
-import { ModalDialog } from "./Modal";
+
 import { format, toDate } from "date-fns";
 
 export const ListAccessoriesShowcase = ({ data, setEditData }) => {

@@ -1,6 +1,6 @@
 import { Layout, Text } from "@ui-kitten/components";
 
-export default function Total({ records }) {
+export default function Total({ records, isExpense }) {
   let total = 0;
   let fee = 0;
   records?.data?.map((row) => {
@@ -26,13 +26,14 @@ export default function Total({ records }) {
           >
             ₱{total}
           </Text>
-          {/* <Text style={{ marginHorizontal: 8 }}>|</Text> */}
-          <Text
-            category="s2"
-            status={records?.category == "Cash in" ? "success" : "warning"}
-          >
-            ₱{fee}
-          </Text>
+          {!isExpense && (
+            <Text
+              category="s2"
+              status={records?.category == "Cash in" ? "success" : "warning"}
+            >
+              ₱{fee}
+            </Text>
+          )}
         </>
       )}
     </Layout>

@@ -8,8 +8,9 @@ import {
   Icon,
   Select,
   SelectItem,
+  CheckBox,
 } from "@ui-kitten/components";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { useState } from "react";
 
 import { useRealm, useUser } from "@realm/react";
@@ -21,12 +22,45 @@ export const CapitalModal = ({
   realmSchemaName,
   typeOfTransaction,
 }) => {
-  isExpense = typeOfTransaction.catgoery == "expense";
+  isExpense = typeOfTransaction.category == "expense";
+
   const today = new Date();
-  const [data, setData] = useState({ date: today });
+  const [data, setData] = useState(
+    isExpense ? { date: today, isPaid: false } : { date: today }
+  );
 
   const realm = useRealm();
   const user = useUser();
+
+  const checkValues = (data) => {
+    if (!data.description || !data.amount || !data.date) {
+      if (isExpense && !data.category) {
+        Alert.alert("Invalid", "Please fill up all fields");
+        return;
+      }
+      Alert.alert("Invalid", "Please fill up all fields");
+      return;
+    }
+    realm.write(() => {
+      realm.create(
+        realmSchemaName,
+        realmSchema.generate(
+          isExpense
+            ? {
+                ...data,
+                userId: user.id,
+              }
+            : {
+                ...data,
+                userId: user.id,
+                category: typeOfTransaction.category,
+              }
+        )
+      );
+    });
+    setData({ date: today });
+    setVisible(false);
+  };
 
   return (
     <View>
@@ -66,25 +100,7 @@ export const CapitalModal = ({
                 </Button>
                 <Button
                   onPress={() => {
-                    realm.write(() => {
-                      realm.create(
-                        realmSchemaName,
-                        realmSchema.generate(
-                          isExpense
-                            ? {
-                                ...data,
-                                userId: user.id,
-                              }
-                            : {
-                                ...data,
-                                userId: user.id,
-                                category: typeOfTransaction.category,
-                              }
-                        )
-                      );
-                    });
-                    setData({ date: today });
-                    setVisible(false);
+                    checkValues(data);
                   }}
                 >
                   SAVE
@@ -129,20 +145,44 @@ export const CapitalModal = ({
               }}
             />
             {isExpense && (
-              <Select
-                label="Payment"
-                placeholder="Select payment method"
-                onSelect={(sel) => {
-                  if (sel.row) {
-                    setData((prev) => ({ ...prev, category: "PHP" }));
-                  } else {
-                    setData((prev) => ({ ...prev, category: "GCash" }));
-                  }
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "flex-end",
+                  alignContent: "flex-end",
+                  justifyContent: "space-between",
+                  gap: 10,
                 }}
               >
-                <SelectItem title="PHP" />
-                <SelectItem title="GCash" />
-              </Select>
+                <Select
+                  style={{ flex: 1, width: 150 }}
+                  label="Payment"
+                  value={data.category ?? null}
+                  placeholder="Select payment method"
+                  onSelect={(sel) => {
+                    if (sel.row == 0) {
+                      setData((prev) => ({ ...prev, category: "PHP" }));
+                    } else {
+                      setData((prev) => ({ ...prev, category: "GCash" }));
+                    }
+                  }}
+                >
+                  <SelectItem title="PHP" />
+                  <SelectItem title="GCash" />
+                </Select>
+                <View>
+                  <CheckBox
+                    style={{ flexDirection: "column", width: 70 }}
+                    checked={data.isPaid}
+                    onChange={(val) =>
+                      setData((prev) => ({ ...prev, isPaid: val }))
+                    }
+                  >
+                    {data.isPaid ? "Paid" : "Unpaid"}
+                  </CheckBox>
+                </View>
+              </View>
             )}
           </View>
         </Card>

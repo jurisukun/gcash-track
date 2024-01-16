@@ -6,7 +6,6 @@ import {
   Divider,
   Icon,
   TopNavigationAction,
-  Spinner,
   Avatar,
   Button,
 } from "@ui-kitten/components";
@@ -26,19 +25,19 @@ import { ThemeContext } from "../lib/theme-context";
 import Balance from "./Balance";
 // import { Subscription } from "realm/dist/bundle";
 import { CapitalTransactions, GcashTransactions, Capital } from "../lib/realm";
-import { useRealm, useQuery as useRealmQuery } from "@realm/react";
+import { useQuery as useRealmQuery } from "@realm/react";
 
 export default function Dashboard() {
   const [sortBy, setSortBy] = useState("All");
   const [visible, setVisible] = useState(false);
   const [editdata, setEditData] = useState();
 
-  const [gcashSubscriptions, setGcashSubscriptions] = useState();
   const themeContext = useContext(ThemeContext);
-  const realm = useRealm();
   const gcashSub = useRealmQuery(GcashTransactions);
   const capitalSub = useRealmQuery(CapitalTransactions);
   const addCapitalSub = useRealmQuery(Capital);
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     const createSubscription = async () => {
@@ -54,55 +53,18 @@ export default function Dashboard() {
     };
 
     createSubscription().catch(console.log);
-
-    // const subscription = realm.subscriptions.findByName("gcashtransactions");
-    // console.log("subscription", subscription);
-    // // ... and set it to a stateful variable or manage it in `useEffect`.
-    // setGcashSubscriptions(subscription);
   }, []);
 
-  const gcashrealmdata = gcashSub.sorted("date", true);
-
-  // console.log("gcashsubs", gcashSubscriptions);
-
-  // const { isError, isLoading, data } = useQuery({
-  //   queryKey: ["fetchrecords"],
-  //   queryFn: async () => {
-  //     await SecureStore.getItemAsync("usertheme").then((res) => {
-  //       if (res) {
-  //         themeContext.setDefTheme(res);
-  //       }
-  //     });
-  //     return getAllRecords().then((res) => res);
-  //   },
-  // });
-  // if (isError) {
-  //   return (
-  //     <Layout
-  //       style={{
-  //         flex: 1,
-  //         justifyContent: "center",
-  //         alignItems: "center",
-  //       }}
-  //     >
-  //       <Text category="h4">Error fetching records...</Text>
-  //     </Layout>
-  //   );
-  // }
-  // if (isLoading) {
-  //   return (
-  //     <Layout
-  //       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-  //     >
-  //       <Spinner status="warning" />
-  //     </Layout>
-  //   );
-  // }
+  const gcashrealmdata = gcashSub
+    .filtered("isTransfer!=true")
+    .sorted("date", true);
 
   let sortedData = gcashrealmdata.filter((row) => {
     if (sortBy == "All") return true;
     else return row.category == sortBy;
   });
+
+  const balanceMap = [{ label: "Gcash" }, { label: "Cash" }];
 
   return (
     <Layout
@@ -157,7 +119,6 @@ export default function Dashboard() {
       />
 
       <View className="h-auto flex w-full flex-row space-x-3 gap-3 items-end justify-evenly pb-3">
-        {/* <View className="flex flex-row w-full px- items-center gap-2 h-[50px]"></View> */}
         <View className="flex flex-row w-full justify-evenly pb-3">
           <View
             style={{
@@ -172,31 +133,47 @@ export default function Dashboard() {
           >
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignContent: "center",
                 alignItems: "center",
-                gap: 8,
+                gap: 10,
               }}
             >
-              <Text
-                category="p1"
-                status="info"
-                style={{ margin: "auto", fontWeight: "800", fontSize: 16 }}
-              >
-                GCash:
-              </Text>
-              <Balance addTo={"Gcash"} />
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Text
-                category="p1"
-                style={{ margin: "auto", fontWeight: "800", fontSize: 16 }}
-                status="info"
-              >
-                Cash:
-              </Text>
-              <Balance addTo={"Cash"} />
+              <View style={{ flexDirection: "row", gap: 15 }}>
+                {balanceMap.map((item, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Text
+                      category="p1"
+                      status="info"
+                      style={{
+                        margin: "auto",
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
+                    >
+                      {item.label}:
+                    </Text>
+                    <Balance addTo={item.label} />
+                  </View>
+                ))}
+              </View>
+              {/* <View>
+                <Text
+                  category="p1"
+                  status="danger"
+                  style={{ fontWeight: "bold" }}
+                >
+                  Transfer
+                </Text>
+              </View> */}
             </View>
 
             <Button

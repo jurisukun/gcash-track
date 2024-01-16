@@ -8,6 +8,7 @@ import {
 
 import Options from "./Options";
 import Dashboard from "./Dashboard";
+import { BottomTabNavigator } from "./Tab";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Drawer = createDrawerNavigator();
@@ -64,7 +65,7 @@ export function AppNavigator() {
             sceneContainerStyle: { paddingTop: insets.top },
           }}
         >
-          <Drawer.Screen name="Home" component={Dashboard} />
+          <Drawer.Screen name="Home" component={BottomTabNavigator} />
           <Drawer.Screen name="Options" component={Options} />
         </Drawer.Navigator>
       </NavigationContainer>
