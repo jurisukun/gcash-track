@@ -1,32 +1,20 @@
-import { Button } from "@ui-kitten/components";
+import { Button, Text } from "@ui-kitten/components";
+import { View } from "react-native";
 import { useEmailPasswordAuth } from "@realm/react";
 import { useEffect } from "react";
 import { Alert } from "react-native";
 
 export default Register = ({ data }) => {
+  const { register, result, logIn } = useEmailPasswordAuth();
   useEffect(() => {
-    console.log(result);
     if (result.success && result.operation === "register") {
       logIn({ email, password });
-      return;
-    }
-    if (result.error) {
-      Alert.alert("Error", result.error);
       return;
     }
   }, [result]);
 
   const { email, password, confirmPassword, isLogin, firstName, lastName } =
     data;
-
-  const { register, result, logIn } = useEmailPasswordAuth();
-
-  try {
-    result;
-  } catch (e) {
-    Alert.alert("Error", result.error);
-    return;
-  }
 
   const performRegistration = () => {
     if (!isLogin) {
@@ -51,12 +39,32 @@ export default Register = ({ data }) => {
       }
     }
 
-    isLogin ? logIn({ email, password }) : register({ email, password });
+    if (isLogin) {
+      logIn({ email, password });
+    } else {
+      register({ email, password });
+    }
   };
 
   return (
-    <Button onPress={performRegistration}>
-      {isLogin ? "Login" : "Create account"}
-    </Button>
+    <View
+      style={{
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 20,
+      }}
+    >
+      {result.error && (
+        <Text status="danger">
+          {isLogin
+            ? "Invalid email/password"
+            : "Cannot register email/password"}
+        </Text>
+      )}
+      <Button onPress={performRegistration}>
+        {isLogin ? "Login" : "Create account"}
+      </Button>
+    </View>
   );
 };

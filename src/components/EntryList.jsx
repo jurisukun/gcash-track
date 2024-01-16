@@ -42,9 +42,15 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
             </Text>
             <Text
               category="s2"
-              status={data.category !== "Cash in" ? "warning" : "success"}
+              status={
+                data?.isTransfer
+                  ? "danger"
+                  : data.category !== "Cash in"
+                  ? "warning"
+                  : "success"
+              }
             >
-              {`+${data?.fee ?? "0"}`}
+              {data?.isTransfer ? `-${data?.fee}` : `+${data?.fee ?? "0"}`}
             </Text>
           </View>
         </View>

@@ -16,8 +16,6 @@ import { ModalDialog } from "./Modal";
 import { ListAccessoriesShowcase } from "./EntryList";
 import SortBy from "./SortBy";
 import Total from "./Total";
-// import { useQuery } from "@tanstack/react-query";
-// import { getAllRecords } from "../lib/sqlite";
 
 import * as SecureStore from "expo-secure-store";
 
@@ -26,6 +24,8 @@ import Balance from "./Balance";
 // import { Subscription } from "realm/dist/bundle";
 import { CapitalTransactions, GcashTransactions, Capital } from "../lib/realm";
 import { useQuery as useRealmQuery } from "@realm/react";
+
+import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
 
 export default function Dashboard() {
   const [sortBy, setSortBy] = useState("All");
@@ -36,8 +36,6 @@ export default function Dashboard() {
   const gcashSub = useRealmQuery(GcashTransactions);
   const capitalSub = useRealmQuery(CapitalTransactions);
   const addCapitalSub = useRealmQuery(Capital);
-
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     const createSubscription = async () => {
@@ -55,16 +53,19 @@ export default function Dashboard() {
     createSubscription().catch(console.log);
   }, []);
 
-  const gcashrealmdata = gcashSub
-    .filtered("isTransfer!=true")
-    .sorted("date", true);
+  const gcashrealmdata = gcashSub.sorted("date", true);
 
   let sortedData = gcashrealmdata.filter((row) => {
     if (sortBy == "All") return true;
     else return row.category == sortBy;
   });
 
-  const balanceMap = [{ label: "Gcash" }, { label: "Cash" }];
+  const gcashBalance = useTotalGcashCashBalance("Gcash");
+  const cashBalance = useTotalGcashCashBalance("Cash");
+  const balanceMap = [
+    { label: "Gcash", balance: gcashBalance },
+    { label: "Cash", balance: cashBalance },
+  ];
 
   return (
     <Layout
@@ -161,7 +162,7 @@ export default function Dashboard() {
                     >
                       {item.label}:
                     </Text>
-                    <Balance addTo={item.label} />
+                    <Balance addTo={item.label} balance={item.balance} />
                   </View>
                 ))}
               </View>
@@ -209,14 +210,13 @@ export default function Dashboard() {
         <Total
           records={{
             category: "Cash in",
-            data: gcashrealmdata.filter((row) => row.category == "Cash in"),
+            data: gcashrealmdata.filtered("category == 'Cash in'"),
           }}
         />
         <Total
-          category="Cash out"
           records={{
             category: "Cash out",
-            data: gcashrealmdata.filter((row) => row.category !== "Cash in"),
+            data: gcashrealmdata.filtered("category != 'Cash in'"),
           }}
         />
         <SortBy sortBy={sortBy} setSortBy={setSortBy} />

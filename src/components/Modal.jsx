@@ -20,6 +20,7 @@ import { format, set, toDate } from "date-fns";
 
 import { useRealm, useUser } from "@realm/react";
 import { GcashTransactions } from "../lib/realm";
+import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
 
 export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   let today = new Date();
@@ -37,6 +38,9 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   const realm = useRealm();
   const user = useUser();
 
+  const gcashBalance = useTotalGcashCashBalance("Gcash");
+  const cashBalance = useTotalGcashCashBalance("Cash");
+
   const checkValues = (data) => {
     if (
       !data.description ||
@@ -52,7 +56,32 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
       );
       return;
     }
-    if (data.category == "Transfer") {
+    if (
+      (data.category == "Cash out" && data.amount > cashBalance) ||
+      (data.category == "Cash in" &&
+        data.amount > gcashBalance &&
+        !data.isTransfer)
+    ) {
+      Alert.alert(
+        "Insufficient balance",
+        "You don't have enough balance for this transaction"
+      );
+      return;
+    }
+
+    if (data.isTransfer) {
+      if (
+        (data.payment == "Gcash" && data.fee > gcashBalance) ||
+        (data.payment == "PHP" && data.fee > cashBalance) ||
+        (data.category == "Cash out" && data.amount > gcashBalance) ||
+        (data.category == "Cash in" && data.amount > cashBalance)
+      ) {
+        Alert.alert(
+          "Insufficient balance",
+          "You don't have enough balance for this transaction"
+        );
+        return;
+      }
     }
     realm.write(() => {
       !editdata

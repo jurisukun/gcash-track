@@ -1,12 +1,14 @@
 import { Layout, Text } from "@ui-kitten/components";
 
-export default function Total({ records, isExpense }) {
-  let total = 0;
-  let fee = 0;
-  records?.data?.map((row) => {
-    total += +row.amount;
-    fee += +row.fee;
-  });
+export default function Total({ records }) {
+  let totalamount = records?.data
+    .filtered("isTransfer!=true")
+
+    .sum("amount");
+  let totalfee = records?.data
+    .filtered("isTransfer!=true")
+
+    .sum("fee");
 
   return (
     <Layout
@@ -24,14 +26,14 @@ export default function Total({ records, isExpense }) {
             status={records?.category == "Cash in" ? "success" : "warning"}
             style={{ fontWeight: "700", fontSize: 16 }}
           >
-            ₱{total}
+            ₱{totalamount}
           </Text>
           {!isExpense && (
             <Text
               category="s2"
               status={records?.category == "Cash in" ? "success" : "warning"}
             >
-              ₱{fee}
+              ₱{totalfee}
             </Text>
           )}
         </>
