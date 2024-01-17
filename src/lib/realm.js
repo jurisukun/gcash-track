@@ -68,6 +68,8 @@ export class GcashTransactions extends Realm.Object {
         default: () => new Date(),
       },
       updatedBy: "string",
+      deletedBy: "string?",
+      deletedAt: "date?",
     },
   };
 }
@@ -104,6 +106,8 @@ export class CapitalTransactions extends Realm.Object {
         default: () => new Date(),
       },
       updatedBy: "string",
+      deletedBy: "string?",
+      deletedAt: "date?",
     },
   };
 }
@@ -139,6 +143,8 @@ export class Capital extends Realm.Object {
         default: () => new Date(),
       },
       updatedBy: "string",
+      deletedBy: "string?",
+      deletedAt: "date?",
     },
   };
 }
@@ -168,14 +174,15 @@ export class CustomUserData extends Realm.Object {
         type: "date",
         default: () => new Date(),
       },
+      deletedBy: "string?",
+      deletedAt: "date?",
     },
   };
 }
 
-// const config = {
-//   schema: [GcashTransactions],
-//   schemaVersion: 3,
-// };
-// // pass the configuration object with the updated 'schemaVersion' to
-// // createRealmContext()
-// const { RealmProvider } = createRealmContext(config);
+const config = {
+  schema: [GcashTransactions, CapitalTransactions, Capital, CustomUserData],
+  schemaVersion: 4,
+};
+
+createRealmContext(config);

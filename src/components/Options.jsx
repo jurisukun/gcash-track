@@ -13,7 +13,7 @@ import {
 } from "@ui-kitten/components";
 
 import { format, toDate } from "date-fns";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { useState } from "react";
 import { useEmailPasswordAuth, useRealm, useQuery } from "@realm/react";
 import { CapitalTransactions } from "../lib/realm";
@@ -28,9 +28,28 @@ export const BurgerAction = () => <TopNavigationAction icon={BurgerIcon} />;
 export default function Options() {
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editdata, setEditData] = useState();
+  const realm = useRealm();
+  const capital = useQuery(CapitalTransactions);
   const { logOut } = useEmailPasswordAuth();
 
-  const capital = useQuery(CapitalTransactions);
+  const deleteTransaction = (data) => {
+    Alert.alert("Delete", "Are you sure you want to delete this transaction?", [
+      {
+        text: "Cancel",
+        onPress: () => {},
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        onPress: () => {
+          realm.write(() => {
+            realm.delete(capital, data, true);
+          });
+        },
+      },
+    ]);
+  };
 
   const renderItem = ({ item, index }) => (
     <>
@@ -39,6 +58,8 @@ export default function Options() {
         title={item.description}
         description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
         accessoryRight={() => renderItemAccessory(item)}
+        onPress={setEditData(item)}
+        onLongPress={() => deleteTransaction(item)}
       />
       <Divider />
     </>
@@ -48,8 +69,18 @@ export default function Options() {
     return (
       <>
         <View className="flex flex-row gap-2 items-center justify-end px-3">
-          <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
-            <Text category="h6" style={{ fontSize: 16 }} status="danger">
+          <View
+            className="flex flex-row space-x-1 items-center justify-between"
+            style={{ gap: 40, justifyContent: "space-between" }}
+          >
+            <Text category="h6" style={{ fontSize: 12 }}>
+              {data.isPaid ? "Paid" : "Unpaid"}
+            </Text>
+            <Text
+              category="h6"
+              style={{ fontSize: 16 }}
+              status={data.isPaid ? "success" : "danger"}
+            >
               ₱{data.amount}
             </Text>
           </View>
@@ -62,8 +93,19 @@ export default function Options() {
     <Layout style={{ flex: 1, flexDirection: "column" }}>
       {modalVisible && (
         <CapitalModal
+          editdata={editdata ? { ...editdata } : null}
+          setEditData={setEditData}
           setVisible={setModalVisible}
           visible={modalVisible}
+          typeOfTransaction={{ category: "expense" }}
+          realmSchema={CapitalTransactions}
+          realmSchemaName={"CapitalTransactions"}
+        />
+      )}
+      {editdata && (
+        <CapitalModal
+          editdata={editdata ? { ...editdata } : null}
+          setEditData={setEditData}
           typeOfTransaction={{ category: "expense" }}
           realmSchema={CapitalTransactions}
           realmSchemaName={"CapitalTransactions"}

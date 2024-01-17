@@ -403,7 +403,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   style={{
                     width: 150,
                   }}
-                  defaultValue={defaultData("amount").toString()}
+                  defaultValue={defaultData("amount")?.toString()}
                   placeholder="Enter amount"
                   label="Amount"
                   keyboardType="numeric"
@@ -427,7 +427,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                     width: 80,
                   }}
                   defaultValue={
-                    fee.toString() ?? editdata?.fee.toString() ?? null
+                    fee?.toString() ?? editdata?.fee?.toString() ?? null
                   }
                   placeholder="Fee"
                   label={"Fee"}

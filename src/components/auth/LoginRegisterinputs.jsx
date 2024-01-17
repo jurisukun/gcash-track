@@ -2,10 +2,12 @@ import { Layout, Text, Input, Icon } from "@ui-kitten/components";
 import { useState } from "react";
 import { View } from "react-native";
 import RegisterButton from "./RegisterButton";
+import { useEmailPasswordAuth } from "@realm/react";
 
 export default LoginRegisterinputs = () => {
   const [dataToSubmit, setDataToSubmit] = useState({ isLogin: true });
   const [secure, setSecure] = useState(true);
+  const { register, result, logIn } = useEmailPasswordAuth();
 
   const checkPassword = (pass, confpass, isLogin) => {
     if (pass.trim() !== confpass.trim() && !isLogin) {
@@ -38,7 +40,7 @@ export default LoginRegisterinputs = () => {
         }}
         className="border rounded-lg"
       >
-        {!dataToSubmit.isLogin && (
+        {/* {!dataToSubmit.isLogin && (
           <>
             <Input
               label="First Name"
@@ -55,7 +57,7 @@ export default LoginRegisterinputs = () => {
               }}
             />
           </>
-        )}
+        )} */}
         <Input
           label="Email"
           placeholder="Enter email address"
@@ -99,9 +101,34 @@ export default LoginRegisterinputs = () => {
             onChangeText={(val) =>
               setDataToSubmit((prev) => ({ ...prev, confirmPassword: val }))
             }
+            accessoryRight={(props) =>
+              secure ? (
+                <Icon
+                  {...props}
+                  name="eye"
+                  onPress={() => {
+                    setSecure(false);
+                  }}
+                />
+              ) : (
+                <Icon
+                  {...props}
+                  name="eye-off"
+                  onPress={() => {
+                    setSecure(true);
+                  }}
+                />
+              )
+            }
           />
         )}
-        <RegisterButton data={dataToSubmit} checkPassword={checkPassword} />
+        <RegisterButton
+          data={dataToSubmit}
+          logIn={logIn}
+          result={result}
+          register={register}
+          checkPassword={checkPassword}
+        />
       </View>
       <View>
         <>

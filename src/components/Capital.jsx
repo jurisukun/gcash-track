@@ -1,20 +1,17 @@
-import {
-  Layout,
-  Text,
-  TopNavigation,
-  Avatar,
-  TopNavigationAction,
-  Icon,
-} from "@ui-kitten/components";
+import { Layout, Text, TopNavigation, Avatar } from "@ui-kitten/components";
 import gcash from "../../assets/g.png";
 import { ListAccessoriesShowcase } from "./EntryList";
 import { Capital } from "../lib/realm";
 import { View } from "react-native";
+import { useState } from "react";
 
 import { useQuery } from "@realm/react";
 
+import { CapitalModal } from "./CapitalModal";
+
 export default function CapitalList() {
   const capital = useQuery(Capital);
+  const [editdata, setEditData] = useState();
 
   return (
     <Layout style={{ flex: 1 }}>
@@ -39,7 +36,24 @@ export default function CapitalList() {
           height: 80,
         }}
       />
-      <ListAccessoriesShowcase data={capital} />
+      <ListAccessoriesShowcase
+        data={capital}
+        isCapital={true}
+        setEditData={setEditData}
+      />
+      <View>
+        {editdata && (
+          <CapitalModal
+            editdata={editdata}
+            setEditData={setEditData}
+            realmSchema={Capital}
+            realmSchemaName={"Capital"}
+            typeOfTransaction={{
+              category: editdata.category,
+            }}
+          />
+        )}
+      </View>
     </Layout>
   );
 }

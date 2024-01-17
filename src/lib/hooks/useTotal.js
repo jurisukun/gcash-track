@@ -1,51 +1,76 @@
 import { useQuery } from "@realm/react";
-import { Capital, GcashTransactions } from "../realm";
+import { Capital, GcashTransactions, CapitalTransactions } from "../realm";
 
-export function useTotalGcashCashBalance(balance) {
-  const isGcash = balance === "Gcash";
-  const capital = useQuery(Capital);
-  const gcash = useQuery(GcashTransactions);
-  let c = isGcash ? "category == 'Cash in'" : "category != 'Cash in'";
-  let d = isGcash ? "payment == 'Gcash'" : "payment != 'Gcash'";
+export function useSubscribe() {
+  const gcashSub = useQuery(GcashTransactions).sorted("date", true);
+  const capitalSub = useQuery(CapitalTransactions);
+  const addCapitalSub = useQuery(Capital);
 
-  let e = isGcash ? "category == 'Cash in'" : "category == 'Cash out'";
-  let f = isGcash ? "payment == 'Gcash'" : "payment != 'Gcash'";
+  let cashintotal = 0;
+  let cashintotalfee = 0;
+  let cashouttotal = 0;
+  let cashouttotalfee = 0;
 
-  let g = isGcash ? "category == 'Cash out'" : "category == 'Cash in'";
+  gcashSub.filtered("isTransfer!=true").filter((row) => {
+    if (row.category == "Cash in" || row.category == "Load") {
+      cashintotal += row.amount;
+      cashintotalfee += row.fee;
+    } else {
+      cashouttotal += row.amount;
+      cashouttotalfee += row.fee;
+    }
+  });
 
-  const totalAmountDeduction = gcash
-    .filtered(c)
-    .filtered("isTransfer!=true")
+  return {
+    gcashSub,
+    capitalSub,
+    addCapitalSub,
+    cashintotal,
+    cashintotalfee,
+    cashouttotal,
+    cashouttotalfee,
+  };
+}
+
+export function useTotalGcashCashBalance() {
+  const { gcashSub, addCapitalSub } = useSubscribe();
+  let totalCashBalance = addCapitalSub
+    .filtered("category=='Cash'")
     .sum("amount");
-  const totalFeeAddition = gcash
-    .filtered(d)
-    .filtered("isTransfer!=true")
-    .sum("fee");
-
-  const totalTransfer = gcash
-    .filtered(e)
-    .filtered("isTransfer==true")
-    .sum("amount");
-  const totalTransFerDeduction = gcash
-    .filtered("isTransfer==true")
-    .filtered(g)
-    .sum("amount");
-  const totalTransferFee = gcash
-    .filtered(f)
-    .filtered("isTransfer==true")
-    .sum("fee");
-
-  const filteredCapital = capital
-    .filtered(`category == "${balance}"`)
+  let totalGcashBalance = addCapitalSub
+    .filtered("category=='Gcash'")
     .sum("amount");
 
-  const total =
-    filteredCapital -
-    totalAmountDeduction +
-    totalFeeAddition +
-    totalTransfer -
-    totalTransFerDeduction -
-    totalTransferFee;
+  gcashSub.filter((row) => {
+    if (row.isTransfer) {
+      if (row.category == "Cash in") {
+        totalGcashBalance += row.amount;
+        totalCashBalance -= row.amount;
+      } else {
+        totalGcashBalance -= row.amount;
+        totalCashBalance += row.amount;
+      }
 
-  return total;
+      if (row.payment == "PHP") {
+        totalCashBalance -= row.fee;
+      } else {
+        totalGcashBalance -= row.fee;
+      }
+    } else {
+      if (row.category == "Cash in" || row.category == "Load") {
+        totalCashBalance += row.amount;
+        totalGcashBalance -= row.amount;
+      } else {
+        totalCashBalance -= row.amount;
+        totalGcashBalance += row.amount;
+      }
+      if (row.payment == "PHP") {
+        totalCashBalance += row.fee;
+      } else {
+        totalGcashBalance += row.fee;
+      }
+    }
+  });
+
+  return { totalCashBalance, totalGcashBalance };
 }

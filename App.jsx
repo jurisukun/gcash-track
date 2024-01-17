@@ -80,7 +80,7 @@ export default function App() {
                     CustomUserData,
                     Capital,
                   ]}
-                  schemaVersion={3}
+                  schemaVersion={4}
                   sync={syncConfigWithErrorHandling}
                 >
                   <SafeAreaProvider>

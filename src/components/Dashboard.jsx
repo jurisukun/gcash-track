@@ -22,8 +22,7 @@ import * as SecureStore from "expo-secure-store";
 import { ThemeContext } from "../lib/theme-context";
 import Balance from "./Balance";
 // import { Subscription } from "realm/dist/bundle";
-import { CapitalTransactions, GcashTransactions, Capital } from "../lib/realm";
-import { useQuery as useRealmQuery } from "@realm/react";
+import { useSubscribe } from "../lib/hooks/useTotal";
 
 import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
 
@@ -33,9 +32,15 @@ export default function Dashboard() {
   const [editdata, setEditData] = useState();
 
   const themeContext = useContext(ThemeContext);
-  const gcashSub = useRealmQuery(GcashTransactions);
-  const capitalSub = useRealmQuery(CapitalTransactions);
-  const addCapitalSub = useRealmQuery(Capital);
+  const {
+    gcashSub,
+    capitalSub,
+    addCapitalSub,
+    cashintotal,
+    cashintotalfee,
+    cashouttotal,
+    cashouttotalfee,
+  } = useSubscribe();
 
   useEffect(() => {
     const createSubscription = async () => {
@@ -53,18 +58,15 @@ export default function Dashboard() {
     createSubscription().catch(console.log);
   }, []);
 
-  const gcashrealmdata = gcashSub.sorted("date", true);
-
-  let sortedData = gcashrealmdata.filter((row) => {
+  let sortedData = gcashSub.filter((row) => {
     if (sortBy == "All") return true;
     else return row.category == sortBy;
   });
 
-  const gcashBalance = useTotalGcashCashBalance("Gcash");
-  const cashBalance = useTotalGcashCashBalance("Cash");
+  const { totalCashBalance, totalGcashBalance } = useTotalGcashCashBalance();
   const balanceMap = [
-    { label: "Gcash", balance: gcashBalance },
-    { label: "Cash", balance: cashBalance },
+    { label: "Gcash", balance: totalGcashBalance },
+    { label: "Cash", balance: totalCashBalance },
   ];
 
   return (
@@ -210,18 +212,24 @@ export default function Dashboard() {
         <Total
           records={{
             category: "Cash in",
-            data: gcashrealmdata.filtered("category == 'Cash in'"),
+            total: cashintotal,
+            totalfee: cashintotalfee,
           }}
         />
         <Total
           records={{
             category: "Cash out",
-            data: gcashrealmdata.filtered("category != 'Cash in'"),
+            total: cashouttotal,
+            totalfee: cashouttotalfee,
           }}
         />
         <SortBy sortBy={sortBy} setSortBy={setSortBy} />
       </View>
-      <ListAccessoriesShowcase data={sortedData} setEditData={setEditData} />
+      <ListAccessoriesShowcase
+        data={sortedData}
+        setEditData={setEditData}
+        iscapital={false}
+      />
     </Layout>
   );
 }

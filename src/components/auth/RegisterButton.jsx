@@ -1,11 +1,10 @@
 import { Button, Text } from "@ui-kitten/components";
 import { View } from "react-native";
-import { useEmailPasswordAuth } from "@realm/react";
+
 import { useEffect } from "react";
 import { Alert } from "react-native";
 
-export default Register = ({ data }) => {
-  const { register, result, logIn } = useEmailPasswordAuth();
+export default Register = ({ data, register, result, logIn }) => {
   useEffect(() => {
     if (result.success && result.operation === "register") {
       logIn({ email, password });
@@ -18,12 +17,7 @@ export default Register = ({ data }) => {
 
   const performRegistration = () => {
     if (!isLogin) {
-      if (
-        !email ||
-        (!firstName && !lastName) ||
-        !password ||
-        !confirmPassword
-      ) {
+      if (!email || !password || !confirmPassword) {
         Alert.alert("Invalid", "Please fill in all fields");
         return;
       }
@@ -52,14 +46,12 @@ export default Register = ({ data }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 20,
+        gap: 15,
       }}
     >
       {result.error && (
-        <Text status="danger">
-          {isLogin
-            ? "Invalid email/password"
-            : "Cannot register email/password"}
+        <Text status="danger" style={{ textAlign: "center" }}>
+          {result.error.message}
         </Text>
       )}
       <Button onPress={performRegistration}>

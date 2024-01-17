@@ -1,20 +1,16 @@
-import React, { useState } from "react";
-import {
-  Button,
-  Icon,
-  List,
-  ListItem,
-  Layout,
-  Text,
-  Divider,
-} from "@ui-kitten/components";
+import React from "react";
+import { Icon, List, ListItem, Text, Divider } from "@ui-kitten/components";
 
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { StyleSheet } from "react-native";
 
 import { format, toDate } from "date-fns";
+import { useUser, useRealm } from "@realm/react";
 
 export const ListAccessoriesShowcase = ({ data, setEditData }) => {
+  const realm = useRealm();
+  const user = useUser();
+
   const renderItemAccessory = (data) => {
     return (
       <>
@@ -34,7 +30,13 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
           </Text>
           <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
             <Text
-              status={data.category !== "Cash in" ? "warning" : "success"}
+              status={
+                data?.isTransfer
+                  ? "danger"
+                  : data.category !== "Cash in" && data.category !== "Load"
+                  ? "warning"
+                  : "success"
+              }
               category="h6"
               style={{ fontSize: 14 }}
             >
@@ -45,7 +47,7 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
               status={
                 data?.isTransfer
                   ? "danger"
-                  : data.category !== "Cash in"
+                  : data.category !== "Cash in" && data.category !== "Load"
                   ? "warning"
                   : "success"
               }
@@ -70,6 +72,27 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
         accessoryRight={() => renderItemAccessory(item)}
         onPress={() => {
           setEditData(item);
+        }}
+        onLongPress={() => {
+          Alert.alert("Delete", "Are you sure you want to delete this entry?", [
+            {
+              text: "Cancel",
+              onPress: () => console.log("Cancel Pressed"),
+              style: "cancel",
+            },
+            {
+              text: "Delete",
+              onPress: () => {
+                realm.write(() => {
+                  realm.delete({
+                    ...item,
+                    deletedAt: new Date(),
+                    deletedBy: user.id,
+                  });
+                });
+              },
+            },
+          ]);
         }}
       />
       <Divider />

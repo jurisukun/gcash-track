@@ -1,14 +1,9 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import {
-  BottomNavigation,
-  BottomNavigationTab,
-  Layout,
-  Text,
-} from "@ui-kitten/components";
+import { BottomNavigation, BottomNavigationTab } from "@ui-kitten/components";
 import Dashboard from "./Dashboard";
-import CapitalList from "./CapitalList";
+import CapitalList from "./Capital";
 
 const { Navigator, Screen } = createBottomTabNavigator();
 

@@ -16,17 +16,23 @@ import { useState } from "react";
 import { useRealm, useUser } from "@realm/react";
 
 export const CapitalModal = ({
+  editdata,
+  setEditData,
   visible,
   setVisible,
   realmSchema,
   realmSchemaName,
   typeOfTransaction,
 }) => {
-  isExpense = typeOfTransaction.category == "expense";
+  isExpense = typeOfTransaction?.category == "expense";
 
   const today = new Date();
   const [data, setData] = useState(
-    isExpense ? { date: today, isPaid: false } : { date: today }
+    editdata
+      ? { ...editdata }
+      : isExpense
+      ? { date: today, isPaid: false }
+      : { date: today }
   );
 
   const realm = useRealm();
@@ -42,31 +48,42 @@ export const CapitalModal = ({
       return;
     }
     realm.write(() => {
-      realm.create(
-        realmSchemaName,
-        realmSchema.generate(
-          isExpense
-            ? {
-                ...data,
-                userId: user.id,
-              }
-            : {
-                ...data,
-                userId: user.id,
-                category: typeOfTransaction.category,
-              }
-        )
-      );
+      editdata
+        ? realm.create(
+            realmSchemaName,
+            {
+              ...editdata,
+              ...data,
+              updatedAt: today,
+              updatedBy: user.id,
+            },
+            true
+          )
+        : realm.create(
+            realmSchemaName,
+            realmSchema.generate(
+              isExpense
+                ? {
+                    ...data,
+                    userId: user.id,
+                  }
+                : {
+                    ...data,
+                    userId: user.id,
+                    category: typeOfTransaction.category,
+                  }
+            )
+          );
     });
     setData({ date: today });
-    setVisible(false);
+    editdata ? setEditData(false) : setVisible(false);
   };
 
   return (
     <View>
       <Modal
         style={{ flex: 1 }}
-        visible={visible}
+        visible={editdata ? true : visible}
         backdropStyle={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       >
         <Card
@@ -81,7 +98,11 @@ export const CapitalModal = ({
             return (
               <View className="flex item-center justify-center px-5">
                 <Text category="h5">
-                  {isExpense ? "New Expense" : "Add Capital"}
+                  {editdata
+                    ? "Edit"
+                    : isExpense
+                    ? "New Expense"
+                    : "Add Capital"}
                 </Text>
               </View>
             );
@@ -92,8 +113,12 @@ export const CapitalModal = ({
                 <Button
                   appearance="outline"
                   onPress={() => {
-                    setVisible(false);
-                    setData({ date: today });
+                    editdata
+                      ? setEditData(null)
+                      : () => {
+                          setVisible(false);
+                          setData({ date: today });
+                        };
                   }}
                 >
                   CANCEl
@@ -103,7 +128,7 @@ export const CapitalModal = ({
                     checkValues(data);
                   }}
                 >
-                  SAVE
+                  {editdata ? "EDIT" : "SAVE"}
                 </Button>
               </View>
             );
@@ -111,6 +136,7 @@ export const CapitalModal = ({
         >
           <View style={{ rowGap: 10 }}>
             <Input
+              defaultValue={data?.description}
               label="Description"
               placeholder="Enter description"
               onChangeText={(val) =>
@@ -118,6 +144,7 @@ export const CapitalModal = ({
               }
             />
             <Input
+              defaultValue={data?.amount?.toString()}
               label="Amount"
               placeholder="Enter amount"
               onChangeText={(val) =>
@@ -125,7 +152,7 @@ export const CapitalModal = ({
               }
             />
             <Datepicker
-              date={data.date}
+              date={data?.date}
               label="Date"
               placeholder="Pick date"
               onSelect={(val) => {
@@ -158,7 +185,7 @@ export const CapitalModal = ({
                 <Select
                   style={{ flex: 1, width: 150 }}
                   label="Payment"
-                  value={data.category ?? null}
+                  value={data?.category ?? null}
                   placeholder="Select payment method"
                   onSelect={(sel) => {
                     if (sel.row == 0) {
