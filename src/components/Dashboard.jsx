@@ -130,7 +130,7 @@ export default function Dashboard() {
               width: "100%",
               flexDirection: "row",
               paddingHorizontal: 15,
-              marginLeft: 10,
+
               alignItems: "center",
               alignContent: "center",
               justifyContent: "space-between",
@@ -174,15 +174,6 @@ export default function Dashboard() {
                   </View>
                 ))}
               </View>
-              {/* <View>
-                <Text
-                  category="p1"
-                  status="danger"
-                  style={{ fontWeight: "bold" }}
-                >
-                  Transfer
-                </Text>
-              </View> */}
             </View>
 
             <Button

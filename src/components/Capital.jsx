@@ -4,15 +4,14 @@ import { ListAccessoriesShowcase } from "./EntryList";
 import { Capital } from "../lib/realm";
 import { View } from "react-native";
 import { useState } from "react";
-
 import { useQuery } from "@realm/react";
 
+import { useSubscribe } from "../lib/hooks/useTotal";
 import { CapitalModal } from "./CapitalModal";
+import Total from "./Total";
 
 export default function CapitalList() {
-  const capital = useQuery(Capital).filter((row) => {
-    if (!row?.deletedAt) return row;
-  });
+  const capital = useSubscribe().addCapitalSub;
   const [editdata, setEditData] = useState();
 
   return (
@@ -31,6 +30,15 @@ export default function CapitalList() {
                 }}
               />
               <Text category="h5">Tracker</Text>
+            </View>
+          );
+        }}
+        accessoryRight={() => {
+          return (
+            <View>
+              <Total
+                records={{ total: capital.sum("amount"), isCapital: true }}
+              />
             </View>
           );
         }}

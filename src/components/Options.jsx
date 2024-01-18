@@ -15,14 +15,11 @@ import {
 import { format, toDate } from "date-fns";
 import { Alert, View } from "react-native";
 import { useState } from "react";
-import {
-  useEmailPasswordAuth,
-  useRealm,
-  useQuery,
-  useUser,
-} from "@realm/react";
+import { useEmailPasswordAuth, useRealm, useUser } from "@realm/react";
 import { CapitalTransactions } from "../lib/realm";
 import { CapitalModal } from "./CapitalModal";
+
+import { useSubscribe } from "../lib/hooks/useTotal";
 
 export const BurgerIcon = (props) => {
   return <Icon name="menu" {...props} onPress={() => {}} />;
@@ -36,9 +33,8 @@ export default function Options() {
   const [editdata, setEditData] = useState();
   const user = useUser();
   const realm = useRealm();
-  const capital = useQuery(CapitalTransactions).filter((row) => {
-    if (!row?.deletedAt) return row;
-  });
+  const capital = useSubscribe().capitalSub;
+
   const { logOut } = useEmailPasswordAuth();
 
   const deleteTransaction = (data) => {
@@ -136,8 +132,6 @@ export default function Options() {
           }
         }}
       >
-        {/* <MenuItem title="optionq" />
-        <MenuItem title="Option2" /> */}
         <MenuItem title="Logout" />
       </OverflowMenu>
       <TopNavigation
@@ -165,11 +159,35 @@ export default function Options() {
         style={{
           flexDirection: "row",
           width: "100%",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "flex-end",
           padding: 20,
         }}
       >
+        <View
+          className="flex, flex-row items-center"
+          style={{ gap: 8, alignContent: "center", alignItems: "center" }}
+        >
+          <Text category="p1" style={{ fontWeight: "700" }}>
+            {" "}
+            Paid:{" "}
+          </Text>
+          <Text category="h6" status="success">
+            ₱{capital.filtered("isPaid==true").sum("amount")}
+          </Text>
+        </View>
+        <View
+          className="flex, flex-row items-center"
+          style={{ gap: 8, alignContent: "center", alignItems: "center" }}
+        >
+          <Text category="p1" style={{ fontWeight: "700" }}>
+            {" "}
+            Unpaid:{" "}
+          </Text>
+          <Text category="h6" status="danger">
+            ₱{capital.filtered("isPaid==false").sum("amount")}
+          </Text>
+        </View>
         <Button
           style={{ width: 45, height: 40 }}
           onPress={() => setModalVisible(true)}

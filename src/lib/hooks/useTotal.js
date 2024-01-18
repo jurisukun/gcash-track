@@ -3,8 +3,8 @@ import { Capital, GcashTransactions, CapitalTransactions } from "../realm";
 
 export function useSubscribe() {
   const gcashSub = useQuery(GcashTransactions).sorted("date", true);
-  const capitalSub = useQuery(CapitalTransactions);
-  const addCapitalSub = useQuery(Capital);
+  const capitalSub = useQuery(CapitalTransactions).sorted("date", true);
+  const addCapitalSub = useQuery(Capital).sorted("date", true);
 
   let cashintotal = 0;
   let cashintotalfee = 0;
@@ -42,12 +42,19 @@ export function useSubscribe() {
 }
 
 export function useTotalGcashCashBalance() {
-  const { gcashSub, addCapitalSub } = useSubscribe();
+  const { gcashSub, addCapitalSub, capitalSub } = useSubscribe();
   let totalCashBalance = addCapitalSub
     .filtered("category=='Cash'")
     .sum("amount");
   let totalGcashBalance = addCapitalSub
     .filtered("category=='Gcash'")
+    .sum("amount");
+
+  let totalGcashDebt = capitalSub
+    .filtered("category=='Gcash' AND  isPaid==true")
+    .sum("amount");
+  let totalCashDebt = capitalSub
+    .filtered("category=='PHP' AND  isPaid==true")
     .sum("amount");
 
   gcashSub.filter((row) => {
@@ -80,6 +87,9 @@ export function useTotalGcashCashBalance() {
       }
     }
   });
+
+  totalCashBalance -= totalCashDebt;
+  totalGcashBalance -= totalGcashDebt;
 
   return { totalCashBalance, totalGcashBalance };
 }

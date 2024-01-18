@@ -40,7 +40,7 @@ export const CapitalModal = ({
 
   const checkValues = (data) => {
     if (!data.description || !data.amount || !data.date) {
-      if (isExpense && !data.category) {
+      if (isExpense && data?.isPaid && !data.category) {
         Alert.alert("Invalid", "Please fill up all fields");
         return;
       }
@@ -175,7 +175,7 @@ export const CapitalModal = ({
                   else setData((prev) => ({ ...prev, category: "Cash" }));
                 }}
                 label="Balance"
-                value={editdata?.category}
+                value={data?.category}
               >
                 <SelectItem title="Gcash"></SelectItem>
                 <SelectItem title="Cash"></SelectItem>
@@ -193,9 +193,10 @@ export const CapitalModal = ({
                 }}
               >
                 <Select
+                  disabled={!data?.isPaid}
                   style={{ flex: 1, width: 150 }}
                   label="Payment"
-                  value={data?.category ?? null}
+                  value={data?.isPaid ? data?.category : null}
                   placeholder="Select payment method"
                   onSelect={(sel) => {
                     if (sel.row == 0) {
@@ -213,7 +214,11 @@ export const CapitalModal = ({
                     style={{ flexDirection: "column", width: 70 }}
                     checked={data.isPaid}
                     onChange={(val) =>
-                      setData((prev) => ({ ...prev, isPaid: val }))
+                      setData((prev) => ({
+                        ...prev,
+                        isPaid: val,
+                        category: !val ? null : prev?.category,
+                      }))
                     }
                   >
                     {data.isPaid ? "Paid" : "Unpaid"}

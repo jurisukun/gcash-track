@@ -7,7 +7,12 @@ import { StyleSheet } from "react-native";
 import { format, toDate } from "date-fns";
 import { useUser, useRealm, useQuery } from "@realm/react";
 
-export const ListAccessoriesShowcase = ({ data, setEditData, schema }) => {
+export const ListAccessoriesShowcase = ({
+  data,
+  setEditData,
+  schema,
+  isCapital,
+}) => {
   const realm = useRealm();
   const user = useUser();
   const renderItemAccessory = (data) => {
@@ -30,7 +35,9 @@ export const ListAccessoriesShowcase = ({ data, setEditData, schema }) => {
           <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
             <Text
               status={
-                data?.isTransfer
+                isCapital
+                  ? "info"
+                  : data?.isTransfer
                   ? "danger"
                   : data.category !== "Cash in" && data.category !== "Load"
                   ? "warning"
@@ -41,33 +48,42 @@ export const ListAccessoriesShowcase = ({ data, setEditData, schema }) => {
             >
               ₱{data.amount}
             </Text>
-            <Text
-              category="s2"
-              status={
-                data?.isTransfer
-                  ? "danger"
-                  : data.category !== "Cash in" && data.category !== "Load"
-                  ? "warning"
-                  : "success"
-              }
-            >
-              {data?.isTransfer ? `-${data?.fee}` : `+${data?.fee ?? "0"}`}
-            </Text>
+            {!isCapital && (
+              <Text
+                category="s2"
+                status={
+                  data?.isTransfer
+                    ? "danger"
+                    : data.category !== "Cash in" && data.category !== "Load"
+                    ? "warning"
+                    : "success"
+                }
+              >
+                {data?.isTransfer ? `-${data?.fee}` : `+${data?.fee ?? "0"}`}
+              </Text>
+            )}
           </View>
         </View>
       </>
     );
   };
 
-  const renderItemIcon = (props) => <Icon {...props} name="person" />;
+  const renderItemIcon = (props, item) => (
+    <Icon
+      {...props}
+      name={item?.isTransfer ? "swap-outline" : isCapital ? "money" : "person"}
+      pack={isCapital ? "fontawesome" : "eva"}
+    />
+  );
 
   const renderItem = ({ item, index }) => (
     <>
       <ListItem
+        style={{ paddingRight: 20 }}
         id={item._id}
         title={item.description}
         description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
-        accessoryLeft={renderItemIcon}
+        accessoryLeft={(props) => renderItemIcon(props, item)}
         accessoryRight={() => renderItemAccessory(item)}
         onPress={() => {
           setEditData(item);

@@ -13,17 +13,31 @@ export default function Total({ records }) {
       <>
         <Text
           category="s1"
-          status={records?.category == "Cash in" ? "success" : "warning"}
+          status={
+            records?.isCapital
+              ? "info"
+              : records?.category == "Cash in"
+              ? "success"
+              : "warning"
+          }
           style={{ fontWeight: "700", fontSize: 16 }}
         >
           ₱{records.total}
         </Text>
-        <Text
-          category="s2"
-          status={records?.category == "Cash in" ? "success" : "warning"}
-        >
-          ₱{records.totalfee}
-        </Text>
+        {!records?.isCapital && (
+          <Text
+            category="s2"
+            status={
+              records?.isCapital
+                ? "info"
+                : records?.category == "Cash in"
+                ? "success"
+                : "warning"
+            }
+          >
+            ₱{records.totalfee}
+          </Text>
+        )}
       </>
     </Layout>
   );
