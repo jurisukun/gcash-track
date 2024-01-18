@@ -14,7 +14,7 @@ import { ThemeContext } from "./src/lib/theme-context";
 import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { RealmProvider } from "@realm/react";
+import { RealmProvider, Realm } from "@realm/react";
 // import { RealmProvider } from "./src/lib/realm";
 import {
   GcashTransactions,
@@ -39,13 +39,14 @@ export default function App() {
   };
 
   const realmAccessBehavior = {
-    type: "downloadBeforeOpen",
-    timeOutBehavior: "openLocalRealm",
-    timeOut: 1000,
+    type: Realm.OpenRealmBehaviorType.OpenImmediately,
   };
 
   const syncConfigWithErrorHandling = {
     flexible: true,
+    onError: (_session, error) => {
+      console.log(error);
+    },
     initialSubscriptions: {
       update: (subs, realm) => {
         subs.add(realm.objects("GcashTransactions"));

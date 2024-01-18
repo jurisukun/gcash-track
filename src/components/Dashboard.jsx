@@ -25,6 +25,7 @@ import Balance from "./Balance";
 import { useSubscribe } from "../lib/hooks/useTotal";
 
 import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
+import { GcashTransactions } from "../lib/realm";
 
 export default function Dashboard() {
   const [sortBy, setSortBy] = useState("All");
@@ -59,14 +60,15 @@ export default function Dashboard() {
   }, []);
 
   let sortedData = gcashSub.filter((row) => {
-    if (sortBy == "All") return true;
+    if (row.deletedAt) return false;
+    else if (sortBy == "All") return row;
     else return row.category == sortBy;
   });
 
   const { totalCashBalance, totalGcashBalance } = useTotalGcashCashBalance();
   const balanceMap = [
-    { label: "Gcash", balance: totalGcashBalance },
-    { label: "Cash", balance: totalCashBalance },
+    { label: "Gcash", addTo: "Gcash", balance: totalGcashBalance },
+    { label: "PHP", addTo: "Cash", balance: totalCashBalance },
   ];
 
   return (
@@ -164,7 +166,11 @@ export default function Dashboard() {
                     >
                       {item.label}:
                     </Text>
-                    <Balance addTo={item.label} balance={item.balance} />
+                    <Balance
+                      label={item.label}
+                      addTo={item.addTo}
+                      balance={item.balance}
+                    />
                   </View>
                 ))}
               </View>
@@ -226,6 +232,7 @@ export default function Dashboard() {
         <SortBy sortBy={sortBy} setSortBy={setSortBy} />
       </View>
       <ListAccessoriesShowcase
+        schema={GcashTransactions}
         data={sortedData}
         setEditData={setEditData}
         iscapital={false}

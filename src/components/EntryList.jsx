@@ -5,12 +5,11 @@ import { Alert, View } from "react-native";
 import { StyleSheet } from "react-native";
 
 import { format, toDate } from "date-fns";
-import { useUser, useRealm } from "@realm/react";
+import { useUser, useRealm, useQuery } from "@realm/react";
 
-export const ListAccessoriesShowcase = ({ data, setEditData }) => {
+export const ListAccessoriesShowcase = ({ data, setEditData, schema }) => {
   const realm = useRealm();
   const user = useUser();
-
   const renderItemAccessory = (data) => {
     return (
       <>
@@ -84,11 +83,15 @@ export const ListAccessoriesShowcase = ({ data, setEditData }) => {
               text: "Delete",
               onPress: () => {
                 realm.write(() => {
-                  realm.delete({
-                    ...item,
-                    deletedAt: new Date(),
-                    deletedBy: user.id,
-                  });
+                  realm.create(
+                    schema,
+                    {
+                      ...item,
+                      deletedAt: new Date(),
+                      deletedBy: user.id,
+                    },
+                    true
+                  );
                 });
               },
             },

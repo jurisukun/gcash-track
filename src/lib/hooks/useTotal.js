@@ -11,20 +11,29 @@ export function useSubscribe() {
   let cashouttotal = 0;
   let cashouttotalfee = 0;
 
-  gcashSub.filtered("isTransfer!=true").filter((row) => {
-    if (row.category == "Cash in" || row.category == "Load") {
-      cashintotal += row.amount;
-      cashintotalfee += row.fee;
-    } else {
-      cashouttotal += row.amount;
-      cashouttotalfee += row.fee;
-    }
-  });
+  gcashSub
+    .filtered("isTransfer!=true")
+
+    .filter((row) => {
+      if (
+        (row.category == "Cash in" || row.category == "Load") &&
+        !row?.deletedAt
+      ) {
+        cashintotal += row.amount;
+        cashintotalfee += row.fee;
+      } else if (
+        (row.category != "Cash in" || row.category != "Load") &&
+        !row?.deletedAt
+      ) {
+        cashouttotal += row.amount;
+        cashouttotalfee += row.fee;
+      }
+    });
 
   return {
-    gcashSub,
-    capitalSub,
-    addCapitalSub,
+    gcashSub: gcashSub.filtered("deletedAt==null"),
+    capitalSub: capitalSub.filtered("deletedAt==null"),
+    addCapitalSub: addCapitalSub.filtered("deletedAt==null"),
     cashintotal,
     cashintotalfee,
     cashouttotal,

@@ -93,10 +93,8 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
             "GcashTransactions",
             {
               ...data,
-              amount: +data.amount,
               userId: user.id,
               _id: data._id,
-              fee: +data.fee,
               updatedAt: today,
               updatedBy: user.id,
             },
@@ -410,7 +408,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   onChangeText={(nextValue) => {
                     setData((prev) => ({
                       ...prev,
-                      amount: nextValue,
+                      amount: +nextValue,
                     }));
 
                     setData((prev) => ({
@@ -434,7 +432,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                   maxLength={5}
                   keyboardType="numeric"
                   onChangeText={(nextValue) =>
-                    setData((prev) => ({ ...prev, fee: nextValue }))
+                    setData((prev) => ({ ...prev, fee: +nextValue }))
                   }
                 />
               </View>

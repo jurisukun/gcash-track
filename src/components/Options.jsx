@@ -15,7 +15,12 @@ import {
 import { format, toDate } from "date-fns";
 import { Alert, View } from "react-native";
 import { useState } from "react";
-import { useEmailPasswordAuth, useRealm, useQuery } from "@realm/react";
+import {
+  useEmailPasswordAuth,
+  useRealm,
+  useQuery,
+  useUser,
+} from "@realm/react";
 import { CapitalTransactions } from "../lib/realm";
 import { CapitalModal } from "./CapitalModal";
 
@@ -29,8 +34,11 @@ export default function Options() {
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editdata, setEditData] = useState();
+  const user = useUser();
   const realm = useRealm();
-  const capital = useQuery(CapitalTransactions);
+  const capital = useQuery(CapitalTransactions).filter((row) => {
+    if (!row?.deletedAt) return row;
+  });
   const { logOut } = useEmailPasswordAuth();
 
   const deleteTransaction = (data) => {
@@ -44,7 +52,11 @@ export default function Options() {
         text: "Delete",
         onPress: () => {
           realm.write(() => {
-            realm.delete(capital, data, true);
+            realm.create(
+              CapitalTransactions,
+              { ...data, deletedAt: new Date(), deletedBy: user.id },
+              true
+            );
           });
         },
       },
@@ -58,7 +70,7 @@ export default function Options() {
         title={item.description}
         description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
         accessoryRight={() => renderItemAccessory(item)}
-        onPress={setEditData(item)}
+        onPress={() => setEditData(item)}
         onLongPress={() => deleteTransaction(item)}
       />
       <Divider />

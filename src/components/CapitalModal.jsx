@@ -24,7 +24,7 @@ export const CapitalModal = ({
   realmSchemaName,
   typeOfTransaction,
 }) => {
-  isExpense = typeOfTransaction?.category == "expense";
+  const isExpense = typeOfTransaction?.category == "expense";
 
   const today = new Date();
   const [data, setData] = useState(
@@ -113,12 +113,8 @@ export const CapitalModal = ({
                 <Button
                   appearance="outline"
                   onPress={() => {
-                    editdata
-                      ? setEditData(null)
-                      : () => {
-                          setVisible(false);
-                          setData({ date: today });
-                        };
+                    editdata ? setEditData(null) : setVisible(false);
+                    setData({ date: today });
                   }}
                 >
                   CANCEl
@@ -148,7 +144,7 @@ export const CapitalModal = ({
               label="Amount"
               placeholder="Enter amount"
               onChangeText={(val) =>
-                setData((prev) => ({ ...prev, amount: val }))
+                setData((prev) => ({ ...prev, amount: +val }))
               }
             />
             <Datepicker
@@ -171,6 +167,20 @@ export const CapitalModal = ({
                 padding: 5,
               }}
             />
+            {editdata && !isExpense && (
+              <Select
+                onSelect={(sel) => {
+                  if (sel.row == 0)
+                    setData((prev) => ({ ...prev, category: "Gcash" }));
+                  else setData((prev) => ({ ...prev, category: "Cash" }));
+                }}
+                label="Balance"
+                value={editdata?.category}
+              >
+                <SelectItem title="Gcash"></SelectItem>
+                <SelectItem title="Cash"></SelectItem>
+              </Select>
+            )}
             {isExpense && (
               <View
                 style={{

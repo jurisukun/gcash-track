@@ -1,8 +1,8 @@
 import { View } from "react-native";
-import { Button, Icon, Text } from "@ui-kitten/components";
+import { Text } from "@ui-kitten/components";
 import { useState } from "react";
-import { useQuery, useRealm, useUser } from "@realm/react";
-import { Capital, GcashTransactions } from "../lib/realm";
+
+import { Capital } from "../lib/realm";
 import { CapitalModal } from "./CapitalModal";
 
 export default function Balance({ addTo, balance }) {
@@ -29,13 +29,15 @@ export default function Balance({ addTo, balance }) {
       >
         +
       </Text>
-      <CapitalModal
-        visible={visible}
-        setVisible={setVisible}
-        typeOfTransaction={{ category: addTo }}
-        realmSchema={Capital}
-        realmSchemaName={"Capital"}
-      />
+      {visible && (
+        <CapitalModal
+          visible={visible}
+          setVisible={setVisible}
+          typeOfTransaction={{ category: addTo }}
+          realmSchema={Capital}
+          realmSchemaName={"Capital"}
+        />
+      )}
     </View>
   );
 }

@@ -18,14 +18,12 @@ export default function Total({ records }) {
         >
           ₱{records.total}
         </Text>
-        {!isExpense && (
-          <Text
-            category="s2"
-            status={records?.category == "Cash in" ? "success" : "warning"}
-          >
-            ₱{records.totalfee}
-          </Text>
-        )}
+        <Text
+          category="s2"
+          status={records?.category == "Cash in" ? "success" : "warning"}
+        >
+          ₱{records.totalfee}
+        </Text>
       </>
     </Layout>
   );

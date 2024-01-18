@@ -10,7 +10,9 @@ import { useQuery } from "@realm/react";
 import { CapitalModal } from "./CapitalModal";
 
 export default function CapitalList() {
-  const capital = useQuery(Capital);
+  const capital = useQuery(Capital).filter((row) => {
+    if (!row?.deletedAt) return row;
+  });
   const [editdata, setEditData] = useState();
 
   return (
@@ -39,6 +41,7 @@ export default function CapitalList() {
       <ListAccessoriesShowcase
         data={capital}
         isCapital={true}
+        schema={Capital}
         setEditData={setEditData}
       />
       <View>
