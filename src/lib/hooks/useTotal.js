@@ -79,7 +79,6 @@ export const useTotalCashinCashoutFees = () => {
 
 export function useTotalGcashCashBalance() {
   const {
-    cashintotal,
     cashouttotal,
     cashfee,
     gcashfee,
@@ -105,23 +104,21 @@ export function useTotalGcashCashBalance() {
     .sum("amount");
 
   totalGcashBalance =
-    totalGcashBalance -
-    (cashouttransfer + gcashtransferfee) +
+    totalGcashBalance +
     cashouttotal -
-    cashintotal +
+    cashouttransfer -
+    gcashtransferfee +
     gcashfee -
-    totalGcashDebt +
-    cashintransfer;
+    totalGcashDebt;
 
   totalCashBalance =
     totalCashBalance +
     cashouttransfer -
-    cashtransferfee -
     cashouttotal +
-    cashintotal +
     cashfee -
-    totalCashDebt -
-    cashintransfer;
+    cashtransferfee -
+    cashintransfer -
+    totalCashDebt;
 
   return { totalCashBalance, totalGcashBalance };
 }
