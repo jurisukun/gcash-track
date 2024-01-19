@@ -16,7 +16,7 @@ import {
   CheckBox,
 } from "@ui-kitten/components";
 import { Alert } from "react-native";
-import { format, set, toDate } from "date-fns";
+import { format } from "date-fns";
 
 import { useRealm, useUser } from "@realm/react";
 import { GcashTransactions } from "../lib/realm";
@@ -37,9 +37,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
 
   const realm = useRealm();
   const user = useUser();
-
-  const gcashBalance = useTotalGcashCashBalance("Gcash");
-  const cashBalance = useTotalGcashCashBalance("Cash");
+  const { totalGcashBalance, totalCashBalance } = useTotalGcashCashBalance();
 
   const checkValues = (data) => {
     if (
@@ -56,25 +54,27 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
       );
       return;
     }
-    if (
-      (data.category == "Cash out" && data.amount > cashBalance) ||
-      (data.category == "Cash in" &&
-        data.amount > gcashBalance &&
-        !data.isTransfer)
-    ) {
-      Alert.alert(
-        "Insufficient balance",
-        "You don't have enough balance for this transaction"
-      );
-      return;
+    if (!data.isTransfer) {
+      if (
+        ((data.category != "Cash in" || data.category != "Load") &&
+          data.amount > totalCashBalance) ||
+        ((data.category == "Cash in" || data.category == "Load") &&
+          data.amount > totalGcashBalance)
+      ) {
+        Alert.alert(
+          "Insufficient balance",
+          "You don't have enough balance for this transaction"
+        );
+        return;
+      }
     }
 
     if (data.isTransfer) {
       if (
-        (data.payment == "Gcash" && data.fee > gcashBalance) ||
-        (data.payment == "PHP" && data.fee > cashBalance) ||
-        (data.category == "Cash out" && data.amount > gcashBalance) ||
-        (data.category == "Cash in" && data.amount > cashBalance)
+        (data.payment == "Gcash" && data.fee > totalGcashBalance) ||
+        (data.payment == "PHP" && data.fee > totalCashBalance) ||
+        (data.category == "Cash out" && data.amount > totalGcashBalance) ||
+        (data.category == "Cash in" && data.amount > totalCashBalance)
       ) {
         Alert.alert(
           "Insufficient balance",
@@ -416,9 +416,6 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
                       fee: calculateFee(prev),
                     }));
                   }}
-                  // accessoryRight={(props) => (
-                  //   <Icon name="money" {...props} pack="fontawesome" />
-                  // )}
                 />
                 <Input
                   style={{

@@ -21,8 +21,8 @@ import * as SecureStore from "expo-secure-store";
 
 import { ThemeContext } from "../lib/theme-context";
 import Balance from "./Balance";
-// import { Subscription } from "realm/dist/bundle";
-import { useSubscribe } from "../lib/hooks/useTotal";
+
+import { useSubscribe, useTotalCashinCashoutFees } from "../lib/hooks/useTotal";
 
 import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
 import { GcashTransactions } from "../lib/realm";
@@ -33,15 +33,10 @@ export default function Dashboard() {
   const [editdata, setEditData] = useState();
 
   const themeContext = useContext(ThemeContext);
-  const {
-    gcashSub,
-    capitalSub,
-    addCapitalSub,
-    cashintotal,
-    cashintotalfee,
-    cashouttotal,
-    cashouttotalfee,
-  } = useSubscribe();
+  const { gcashSub, capitalSub, addCapitalSub } = useSubscribe();
+
+  const { cashintotal, cashintotalfee, cashouttotal, cashouttotalfee } =
+    useTotalCashinCashoutFees();
 
   useEffect(() => {
     const createSubscription = async () => {

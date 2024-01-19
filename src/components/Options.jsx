@@ -169,8 +169,7 @@ export default function Options() {
           style={{ gap: 8, alignContent: "center", alignItems: "center" }}
         >
           <Text category="p1" style={{ fontWeight: "700" }}>
-            {" "}
-            Paid:{" "}
+            Paid
           </Text>
           <Text category="h6" status="success">
             ₱{capital.filtered("isPaid==true").sum("amount")}
@@ -181,8 +180,7 @@ export default function Options() {
           style={{ gap: 8, alignContent: "center", alignItems: "center" }}
         >
           <Text category="p1" style={{ fontWeight: "700" }}>
-            {" "}
-            Unpaid:{" "}
+            Unpaid:
           </Text>
           <Text category="h6" status="danger">
             ₱{capital.filtered("isPaid==false").sum("amount")}
@@ -193,7 +191,6 @@ export default function Options() {
           onPress={() => setModalVisible(true)}
           accessoryLeft={(props) => <Icon {...props} name="plus" />}
           size="small"
-          // style={{ height: "100%" }}
         />
       </View>
       <List data={capital} renderItem={renderItem} style={{ flex: 1 }} />

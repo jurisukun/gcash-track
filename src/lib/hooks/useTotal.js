@@ -6,15 +6,30 @@ export function useSubscribe() {
   const capitalSub = useQuery(CapitalTransactions).sorted("date", true);
   const addCapitalSub = useQuery(Capital).sorted("date", true);
 
+  return {
+    gcashSub: gcashSub.filtered("deletedAt==null"),
+    capitalSub: capitalSub.filtered("deletedAt==null"),
+    addCapitalSub: addCapitalSub.filtered("deletedAt==null"),
+  };
+}
+
+export const useTotalCashinCashoutFees = () => {
+  const { gcashSub } = useSubscribe();
   let cashintotal = 0;
   let cashintotalfee = 0;
   let cashouttotal = 0;
   let cashouttotalfee = 0;
 
-  gcashSub
-    .filtered("isTransfer!=true")
+  let cashfee = 0;
+  let gcashfee = 0;
 
-    .filter((row) => {
+  let cashouttransfer = 0;
+  let cashintransfer = 0;
+  let gcashtransferfee = 0;
+  let cashtransferfee = 0;
+
+  gcashSub.filter((row) => {
+    if (!row?.isTransfer && !row?.deletedAt) {
       if (
         (row.category == "Cash in" || row.category == "Load") &&
         !row?.deletedAt
@@ -28,21 +43,53 @@ export function useSubscribe() {
         cashouttotal += row.amount;
         cashouttotalfee += row.fee;
       }
-    });
+      if (row.payment == "PHP") {
+        cashfee += row.fee;
+      } else {
+        gcashfee += row.fee;
+      }
+    } else if (row?.isTransfer && !row?.deletedAt) {
+      if (row.category == "Cash in") {
+        cashintransfer += row.amount;
+      } else if (row.category == "Cash out") {
+        cashouttransfer += row.amount;
+      }
+
+      if (row.payment == "PHP") {
+        cashtransferfee += row.fee;
+      } else if (row.payment == "Gcash") {
+        gcashtransferfee += row.fee;
+      }
+    }
+  });
 
   return {
-    gcashSub: gcashSub.filtered("deletedAt==null"),
-    capitalSub: capitalSub.filtered("deletedAt==null"),
-    addCapitalSub: addCapitalSub.filtered("deletedAt==null"),
     cashintotal,
     cashintotalfee,
     cashouttotal,
     cashouttotalfee,
+    cashfee,
+    gcashfee,
+    cashouttransfer,
+    cashintransfer,
+    cashtransferfee,
+    gcashtransferfee,
   };
-}
+};
 
 export function useTotalGcashCashBalance() {
-  const { gcashSub, addCapitalSub, capitalSub } = useSubscribe();
+  const {
+    cashintotal,
+    cashouttotal,
+    cashfee,
+    gcashfee,
+    cashouttransfer,
+    cashintransfer,
+    gcashtransferfee,
+    cashtransferfee,
+  } = useTotalCashinCashoutFees();
+
+  const { addCapitalSub, capitalSub } = useSubscribe();
   let totalCashBalance = addCapitalSub
     .filtered("category=='Cash'")
     .sum("amount");
@@ -57,39 +104,24 @@ export function useTotalGcashCashBalance() {
     .filtered("category=='PHP' AND  isPaid==true")
     .sum("amount");
 
-  gcashSub.filter((row) => {
-    if (row.isTransfer) {
-      if (row.category == "Cash in") {
-        totalGcashBalance += row.amount;
-        totalCashBalance -= row.amount;
-      } else {
-        totalGcashBalance -= row.amount;
-        totalCashBalance += row.amount;
-      }
+  totalGcashBalance =
+    totalGcashBalance -
+    (cashouttransfer + gcashtransferfee) +
+    cashouttotal -
+    cashintotal +
+    gcashfee -
+    totalGcashDebt +
+    cashintransfer;
 
-      if (row.payment == "PHP") {
-        totalCashBalance -= row.fee;
-      } else {
-        totalGcashBalance -= row.fee;
-      }
-    } else {
-      if (row.category == "Cash in" || row.category == "Load") {
-        totalCashBalance += row.amount;
-        totalGcashBalance -= row.amount;
-      } else {
-        totalCashBalance -= row.amount;
-        totalGcashBalance += row.amount;
-      }
-      if (row.payment == "PHP") {
-        totalCashBalance += row.fee;
-      } else {
-        totalGcashBalance += row.fee;
-      }
-    }
-  });
-
-  totalCashBalance -= totalCashDebt;
-  totalGcashBalance -= totalGcashDebt;
+  totalCashBalance =
+    totalCashBalance +
+    cashouttransfer -
+    cashtransferfee -
+    cashouttotal +
+    cashintotal +
+    cashfee -
+    totalCashDebt -
+    cashintransfer;
 
   return { totalCashBalance, totalGcashBalance };
 }

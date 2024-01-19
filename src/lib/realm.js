@@ -101,7 +101,7 @@ export class CapitalTransactions extends Realm.Object {
       category: "string?",
       isPaid: { type: "bool", default: false },
       userId: "string",
-      createtedAt: "date",
+      createdAt: "date",
       updatedAt: {
         type: "date",
         default: () => new Date(),
@@ -181,10 +181,3 @@ export class CustomUserData extends Realm.Object {
     },
   };
 }
-
-const config = {
-  schema: [GcashTransactions, CapitalTransactions, Capital, CustomUserData],
-  schemaVersion: 7,
-};
-
-createRealmContext(config);

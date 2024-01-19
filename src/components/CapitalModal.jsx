@@ -40,10 +40,13 @@ export const CapitalModal = ({
 
   const checkValues = (data) => {
     if (!data.description || !data.amount || !data.date) {
-      if (isExpense && data?.isPaid && !data.category) {
-        Alert.alert("Invalid", "Please fill up all fields");
-        return;
-      }
+      Alert.alert("Invalid", "Please fill up all fields");
+      return;
+    }
+    if (
+      (isExpense && data?.isPaid && !data?.category) ||
+      (isExpense && data?.category && !data?.isPaid)
+    ) {
       Alert.alert("Invalid", "Please fill up all fields");
       return;
     }
@@ -202,12 +205,12 @@ export const CapitalModal = ({
                     if (sel.row == 0) {
                       setData((prev) => ({ ...prev, category: "PHP" }));
                     } else {
-                      setData((prev) => ({ ...prev, category: "GCash" }));
+                      setData((prev) => ({ ...prev, category: "Gcash" }));
                     }
                   }}
                 >
                   <SelectItem title="PHP" />
-                  <SelectItem title="GCash" />
+                  <SelectItem title="Gcash" />
                 </Select>
                 <View>
                   <CheckBox

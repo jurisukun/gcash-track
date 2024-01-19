@@ -19,9 +19,9 @@ const DrawerContent = ({ navigation, state }) => (
     selectedIndex={new IndexPath(state.index)}
     onSelect={(index) => navigation.navigate(state.routeNames[index.row])}
   >
-    <DrawerItem title="Home" />
+    <DrawerItem title="Dashboard" />
 
-    <DrawerItem title="Options" />
+    <DrawerItem title="Other" />
   </DrawerKit>
 );
 
@@ -65,8 +65,8 @@ export function AppNavigator() {
             sceneContainerStyle: { paddingTop: insets.top },
           }}
         >
-          <Drawer.Screen name="Home" component={BottomTabNavigator} />
-          <Drawer.Screen name="Options" component={Options} />
+          <Drawer.Screen name="Dashboard" component={BottomTabNavigator} />
+          <Drawer.Screen name="Other" component={Options} />
         </Drawer.Navigator>
       </NavigationContainer>
     </>
