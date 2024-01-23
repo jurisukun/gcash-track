@@ -17,8 +17,8 @@ export default function Total({ records }) {
             records?.isCapital
               ? "info"
               : records?.category == "Cash in"
-              ? "success"
-              : "warning"
+              ? "info"
+              : "danger"
           }
           style={{ fontWeight: "700", fontSize: 16 }}
         >
@@ -31,8 +31,8 @@ export default function Total({ records }) {
               records?.isCapital
                 ? "info"
                 : records?.category == "Cash in"
-                ? "success"
-                : "warning"
+                ? "info"
+                : "danger"
             }
           >
             ₱{records.totalfee}

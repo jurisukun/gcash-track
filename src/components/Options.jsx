@@ -15,27 +15,21 @@ import {
 import { format, toDate } from "date-fns";
 import { Alert, View } from "react-native";
 import { useState } from "react";
-import { useEmailPasswordAuth, useRealm, useUser } from "@realm/react";
+
 import { CapitalTransactions } from "../lib/realm";
 import { CapitalModal } from "./CapitalModal";
 
 import { useSubscribe } from "../lib/hooks/useTotal";
-
-export const BurgerIcon = (props) => {
-  return <Icon name="menu" {...props} onPress={() => {}} />;
-};
-
-export const BurgerAction = () => <TopNavigationAction icon={BurgerIcon} />;
+import { useRoute } from "@react-navigation/native";
+import { useUser, useRealm } from "@realm/react";
 
 export default function Options() {
-  const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editdata, setEditData] = useState();
   const user = useUser();
   const realm = useRealm();
   const capital = useSubscribe().capitalSub;
-
-  const { logOut } = useEmailPasswordAuth();
+  const route = useRoute();
 
   const deleteTransaction = (data) => {
     Alert.alert("Delete", "Are you sure you want to delete this transaction?", [
@@ -119,39 +113,30 @@ export default function Options() {
           realmSchemaName={"CapitalTransactions"}
         />
       )}
-      <OverflowMenu
-        visible={visible}
-        placement={"bottom end"}
-        onBackdropPress={() => setVisible(false)}
-        anchor={() => {
-          return <View className="bg-white"></View>;
-        }}
-        onSelect={(index) => {
-          if (index.row == 0) {
-            logOut();
-          }
-        }}
-      >
-        <MenuItem title="Logout" />
-      </OverflowMenu>
+
       <TopNavigation
-        accessoryLeft={BurgerAction}
-        title="Options"
-        accessoryRight={() => (
-          <>
-            <TopNavigationAction
-              icon={(props) => (
-                <Icon
-                  style={{ backgroundColor: "black" }}
-                  name={"more-vertical-outline"}
-                  {...props}
-                />
-              )}
-              onPress={() => {
-                setVisible(true);
+        style={{ paddingHorizontal: 20, height: 60 }}
+        accessoryLeft={(props) => (
+          <View
+            className="flex flex-row"
+            style={{ gap: 10, alignItems: "center" }}
+          >
+            <Text category="h5" style={{ fontWeight: "700" }}>
+              {route.params.option}
+            </Text>
+            <Icon
+              {...props}
+              name={route?.params?.icon}
+              pack="feather"
+              fill="#CCCCFF"
+              style={{
+                width: 22,
+                height: 22,
+                margin: "auto",
+                color: "#CCCCFF",
               }}
             />
-          </>
+          </View>
         )}
       />
       <Divider />

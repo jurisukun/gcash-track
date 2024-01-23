@@ -1,15 +1,22 @@
 import { useQuery } from "@realm/react";
-import { Capital, GcashTransactions, CapitalTransactions } from "../realm";
+import {
+  Capital,
+  GcashTransactions,
+  CapitalTransactions,
+  ProfileImage,
+} from "../realm";
 
 export function useSubscribe() {
   const gcashSub = useQuery(GcashTransactions).sorted("date", true);
   const capitalSub = useQuery(CapitalTransactions).sorted("date", true);
   const addCapitalSub = useQuery(Capital).sorted("date", true);
+  const profilePicSub = useQuery(ProfileImage).filtered("deletedAt==null");
 
   return {
     gcashSub: gcashSub.filtered("deletedAt==null"),
     capitalSub: capitalSub.filtered("deletedAt==null"),
     addCapitalSub: addCapitalSub.filtered("deletedAt==null"),
+    profilePicSub,
   };
 }
 

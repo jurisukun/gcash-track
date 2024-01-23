@@ -1,9 +1,9 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Ionicons";
 
-export const FontAwesomeIconsPack = {
-  name: "fontawesome",
+export const IonicIconsPack = {
+  name: "ionicons",
   icons: createIconsMap(),
 };
 
@@ -19,10 +19,10 @@ function createIconsMap() {
 }
 
 const IconProvider = (name) => ({
-  toReactElement: (props) => FontAwesomeIcon({ name, ...props }),
+  toReactElement: (props) => IonicIcon({ name, ...props }),
 });
 
-function FontAwesomeIcon({ name, style }) {
+function IonicIcon({ name, style }) {
   const { height, tintColor, ...iconStyle } = StyleSheet.flatten(style);
   return <Icon name={name} size={height} color={tintColor} style={iconStyle} />;
 }

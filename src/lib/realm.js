@@ -181,3 +181,22 @@ export class CustomUserData extends Realm.Object {
     },
   };
 }
+
+export class ProfileImage extends Realm.Object {
+  static schema = {
+    name: "ProfileImage",
+    primaryKey: "_id",
+    properties: {
+      _id: { type: "objectId", default: new Realm.BSON.ObjectId() },
+      userId: "string",
+      imgUri: "string",
+      createdAt: { type: "date", default: new Date() },
+      updatedAt: {
+        type: "date",
+        default: new Date(),
+      },
+      deletedBy: "string?",
+      deletedAt: "date?",
+    },
+  };
+}

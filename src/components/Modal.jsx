@@ -147,311 +147,309 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   };
 
   return (
-    <View className=" h-10">
-      <Modal
-        style={{ flex: 1 }}
-        visible={editdata ? true : visible ? true : false}
-        backdropStyle={styles.backdrop}
-      >
-        <Card
-          disabled={true}
-          style={{
-            flex: 1,
-            width: 300,
-            rowGap: 15,
-            padding: 5,
-            borderRadius: 10,
-          }}
-          header={() => (
-            <View
-              className="flex flex-row item-center justify-between px-5"
-              style={{ alignContent: "center", alignItems: "center" }}
-            >
-              <View>
-                <Text category="h5">
-                  {`${
-                    data.isTransfer
-                      ? "Transfer"
-                      : data.category ?? editdata?.category ?? "New Record"
-                  }`}
-                </Text>
-              </View>
-              <View>
-                <CheckBox
-                  style={{ flexDirection: "column", alignSelf: "flex-end" }}
-                  checked={data.isTransfer}
-                  onChange={(e) => {
-                    setData((prev) => ({
-                      ...prev,
-                      isTransfer: e,
-                      description: e ? "Transfer" : null,
-                      category: null,
-                    }));
-                  }}
-                >
-                  Transfer
-                </CheckBox>
-              </View>
-            </View>
-          )}
-          footer={() => (
-            <View className="flex flex-row justify-center items-center gap-12 p-3 h-[120px]">
-              <Button
-                appearance="outline"
-                onPress={() => {
-                  unset();
-                }}
-              >
-                CANCEL
-              </Button>
-              <Button style={{ width: 100 }} onPress={() => checkValues(data)}>
-                {editdata ? "EDIT" : "SAVE"}
-              </Button>
-            </View>
-          )}
-        >
-          <View className="h-auto space-y-3 ">
-            <View style={{ rowGap: 20 }}>
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                {data.isTransfer && (
-                  <Select
-                    style={{ flex: 1 }}
-                    value={data.category}
-                    label="Select transfer"
-                    onSelect={(e) => {
-                      if (e.row == 0) {
-                        setData((prev) => ({
-                          ...prev,
-                          category: "Cash out",
-                        }));
-                      } else {
-                        setData((prev) => ({
-                          ...prev,
-
-                          category: "Cash in",
-                        }));
-                      }
-                    }}
-                  >
-                    <SelectItem title="Cash out" />
-                    <SelectItem title="Cash in" />
-                  </Select>
-                )}
-                {!data.isTransfer && (
-                  <Select
-                    placeholder={
-                      editdata && editdata?.category == "Load"
-                        ? `${editdata?.category + `   (${editdata?.load})`}`
-                        : editdata?.category ?? data.category ?? "Select type"
-                    }
-                    label="Type"
-                    value={
-                      data.category == "Load" || editdata?.category == "Load"
-                        ? `${data.category}   (${data.load})` ||
-                          `${editdata.category}   (${editdata.load})`
-                        : data.category
-                    }
-                    onSelect={(index) => {
-                      setData((prev) => ({
-                        ...prev,
-                        index: index.section,
-                        category: selectoptions[index.section],
-                        fee: calculateFee({
-                          category: selectoptions[index.section],
-                          amount: prev.amount,
-                        }),
-                      }));
-                    }}
-                    style={{ flex: 1 }}
-                  >
-                    {selectoptions.map((item, index) => {
-                      if (item == "Load") {
-                        return (
-                          <OverflowMenu
-                            onSelect={(sel) => {
-                              let newdata = {};
-                              if (sel.row == 0) {
-                                newdata = {
-                                  index: 2,
-                                  category: "Load",
-                                  load: "Globe",
-                                };
-                              } else {
-                                newdata = {
-                                  index: 2,
-                                  category: "Load",
-                                  load: "Other",
-                                };
-                              }
-                              setData((prev) => ({
-                                ...prev,
-                                ...newdata,
-                              }));
-                              setData((prev) => ({
-                                ...prev,
-                                fee: calculateFee(prev),
-                              }));
-                              setLoadOptions(false);
-                            }}
-                            style={{ width: 120, zIndex: 1000 }}
-                            key={index}
-                            visible={loadOptions}
-                            placement={"right"}
-                            anchor={() => (
-                              <View style={{ width: 140 }} key={index}>
-                                <SelectItem
-                                  title={item}
-                                  key={index}
-                                  onPress={() => {
-                                    setLoadOptions(true);
-                                  }}
-                                />
-                                <Divider />
-                              </View>
-                            )}
-                            onBackdropPress={() => {
-                              setLoadOptions(false);
-                            }}
-                          >
-                            <MenuItem title="Globe" />
-                            <Divider />
-                            <MenuItem title="Other" />
-                          </OverflowMenu>
-                        );
-                      }
-                      return (
-                        <View key={index}>
-                          <SelectItem title={item} key={index} />
-                          <Divider />
-                        </View>
-                      );
-                    })}
-                  </Select>
-                )}
-              </View>
-              <Input
-                style={{
-                  flex: 1,
-                  height: 50,
-                  borderColor: "black",
-                  borderWidth: 1,
-                }}
-                disabled={data.isTransfer ? true : false}
-                defaultValue={
+    <Modal
+      style={{ flex: 1 }}
+      visible={editdata ? true : visible ? true : false}
+      backdropStyle={styles.backdrop}
+    >
+      <Card
+        disabled={true}
+        style={{
+          flex: 1,
+          width: 300,
+          rowGap: 15,
+          padding: 5,
+          borderRadius: 10,
+        }}
+        header={() => (
+          <View
+            className="flex flex-row item-center justify-between px-5"
+            style={{ alignContent: "center", alignItems: "center" }}
+          >
+            <View>
+              <Text category="h5">
+                {`${
                   data.isTransfer
                     ? "Transfer"
-                    : defaultData("description") ?? null
-                }
-                placeholder="Enter details"
-                label="Description"
-                multiline={true}
-                accessoryRight={(props) => {
-                  return (
-                    <Icon {...props} name="list">
-                      Today
-                    </Icon>
-                  );
-                }}
-                onChangeText={(nextValue) =>
-                  setData((prev) => ({ ...prev, description: nextValue }))
-                }
-              />
-
-              <Datepicker
-                date={date}
-                onSelect={(nextDate) => {
-                  setDate(nextDate),
-                    setData((prev) => ({
-                      ...prev,
-                      date: nextDate,
-                    }));
-                }}
-                accessoryRight={(props) => {
-                  return (
-                    <Icon {...props} name="calendar">
-                      Today
-                    </Icon>
-                  );
-                }}
-                placeholder={"Pick Date"}
-                label="Date"
-                placement="right end"
-                backdropStyle={{
-                  backgroundColor: "rgba(0,0,0,0.5)",
-                  padding: 5,
-                }}
-              />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  justifyContent: "space-between",
+                    : data.category ?? editdata?.category ?? "New Record"
+                }`}
+              </Text>
+            </View>
+            <View>
+              <CheckBox
+                style={{ flexDirection: "column", alignSelf: "flex-end" }}
+                checked={data.isTransfer}
+                onChange={(e) => {
+                  setData((prev) => ({
+                    ...prev,
+                    isTransfer: e,
+                    description: e ? "Transfer" : null,
+                    category: null,
+                  }));
                 }}
               >
-                <Input
-                  style={{
-                    width: 150,
-                  }}
-                  defaultValue={defaultData("amount")?.toString()}
-                  placeholder="Enter amount"
-                  label="Amount"
-                  keyboardType="numeric"
-                  onChangeText={(nextValue) => {
-                    setData((prev) => ({
-                      ...prev,
-                      amount: +nextValue,
-                    }));
-
-                    setData((prev) => ({
-                      ...prev,
-                      fee: calculateFee(prev),
-                    }));
-                  }}
-                />
-                <Input
-                  style={{
-                    width: 80,
-                  }}
-                  defaultValue={
-                    fee?.toString() ?? editdata?.fee?.toString() ?? null
-                  }
-                  placeholder="Fee"
-                  label={"Fee"}
-                  maxLength={5}
-                  keyboardType="numeric"
-                  onChangeText={(nextValue) =>
-                    setData((prev) => ({ ...prev, fee: +nextValue }))
-                  }
-                />
-              </View>
-              <Select
-                placeholder={data.payment ?? "Select payment"}
-                value={data.payment ?? null}
-                onSelect={(sel) => {
-                  sel.row == 0
-                    ? setData((prev) => ({ ...prev, payment: "PHP" }))
-                    : setData((prev) => ({ ...prev, payment: "Gcash" }));
-                }}
-                label="Fee payment"
-                style={{ flex: 1 }}
-              >
-                <SelectItem title="PHP" />
-                <SelectItem title="Gcash" />
-              </Select>
+                Transfer
+              </CheckBox>
             </View>
           </View>
-        </Card>
-      </Modal>
-    </View>
+        )}
+        footer={() => (
+          <View className="flex flex-row justify-center items-center gap-12 p-3 h-[120px]">
+            <Button
+              appearance="outline"
+              onPress={() => {
+                unset();
+              }}
+            >
+              CANCEL
+            </Button>
+            <Button style={{ width: 100 }} onPress={() => checkValues(data)}>
+              {editdata ? "EDIT" : "SAVE"}
+            </Button>
+          </View>
+        )}
+      >
+        <View className="h-auto space-y-3 ">
+          <View style={{ rowGap: 20 }}>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              {data.isTransfer && (
+                <Select
+                  style={{ flex: 1 }}
+                  value={data.category}
+                  label="Select transfer"
+                  onSelect={(e) => {
+                    if (e.row == 0) {
+                      setData((prev) => ({
+                        ...prev,
+                        category: "Cash out",
+                      }));
+                    } else {
+                      setData((prev) => ({
+                        ...prev,
+
+                        category: "Cash in",
+                      }));
+                    }
+                  }}
+                >
+                  <SelectItem title="Cash out" />
+                  <SelectItem title="Cash in" />
+                </Select>
+              )}
+              {!data.isTransfer && (
+                <Select
+                  placeholder={
+                    editdata && editdata?.category == "Load"
+                      ? `${editdata?.category + `   (${editdata?.load})`}`
+                      : editdata?.category ?? data.category ?? "Select type"
+                  }
+                  label="Type"
+                  value={
+                    data.category == "Load" || editdata?.category == "Load"
+                      ? `${data.category}   (${data.load})` ||
+                        `${editdata.category}   (${editdata.load})`
+                      : data.category
+                  }
+                  onSelect={(index) => {
+                    setData((prev) => ({
+                      ...prev,
+                      index: index.section,
+                      category: selectoptions[index.section],
+                      fee: calculateFee({
+                        category: selectoptions[index.section],
+                        amount: prev.amount,
+                      }),
+                    }));
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  {selectoptions.map((item, index) => {
+                    if (item == "Load") {
+                      return (
+                        <OverflowMenu
+                          onSelect={(sel) => {
+                            let newdata = {};
+                            if (sel.row == 0) {
+                              newdata = {
+                                index: 2,
+                                category: "Load",
+                                load: "Globe",
+                              };
+                            } else {
+                              newdata = {
+                                index: 2,
+                                category: "Load",
+                                load: "Other",
+                              };
+                            }
+                            setData((prev) => ({
+                              ...prev,
+                              ...newdata,
+                            }));
+                            setData((prev) => ({
+                              ...prev,
+                              fee: calculateFee(prev),
+                            }));
+                            setLoadOptions(false);
+                          }}
+                          style={{ width: 120, zIndex: 1000 }}
+                          key={index}
+                          visible={loadOptions}
+                          placement={"right"}
+                          anchor={() => (
+                            <View style={{ width: 140 }} key={index}>
+                              <SelectItem
+                                title={item}
+                                key={index}
+                                onPress={() => {
+                                  setLoadOptions(true);
+                                }}
+                              />
+                              <Divider />
+                            </View>
+                          )}
+                          onBackdropPress={() => {
+                            setLoadOptions(false);
+                          }}
+                        >
+                          <MenuItem title="Globe" />
+                          <Divider />
+                          <MenuItem title="Other" />
+                        </OverflowMenu>
+                      );
+                    }
+                    return (
+                      <View key={index}>
+                        <SelectItem title={item} key={index} />
+                        <Divider />
+                      </View>
+                    );
+                  })}
+                </Select>
+              )}
+            </View>
+            <Input
+              style={{
+                flex: 1,
+                height: 50,
+                borderColor: "black",
+                borderWidth: 1,
+              }}
+              disabled={data.isTransfer ? true : false}
+              defaultValue={
+                data.isTransfer
+                  ? "Transfer"
+                  : defaultData("description") ?? null
+              }
+              placeholder="Enter details"
+              label="Description"
+              multiline={true}
+              accessoryRight={(props) => {
+                return (
+                  <Icon {...props} name="list">
+                    Today
+                  </Icon>
+                );
+              }}
+              onChangeText={(nextValue) =>
+                setData((prev) => ({ ...prev, description: nextValue }))
+              }
+            />
+
+            <Datepicker
+              date={date}
+              onSelect={(nextDate) => {
+                setDate(nextDate),
+                  setData((prev) => ({
+                    ...prev,
+                    date: nextDate,
+                  }));
+              }}
+              accessoryRight={(props) => {
+                return (
+                  <Icon {...props} name="calendar">
+                    Today
+                  </Icon>
+                );
+              }}
+              placeholder={"Pick Date"}
+              label="Date"
+              placement="right end"
+              backdropStyle={{
+                backgroundColor: "rgba(0,0,0,0.5)",
+                padding: 5,
+              }}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignContent: "center",
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <Input
+                style={{
+                  width: 150,
+                }}
+                defaultValue={defaultData("amount")?.toString()}
+                placeholder="Enter amount"
+                label="Amount"
+                keyboardType="numeric"
+                onChangeText={(nextValue) => {
+                  setData((prev) => ({
+                    ...prev,
+                    amount: +nextValue,
+                  }));
+
+                  setData((prev) => ({
+                    ...prev,
+                    fee: calculateFee(prev),
+                  }));
+                }}
+              />
+              <Input
+                style={{
+                  width: 80,
+                }}
+                defaultValue={
+                  fee?.toString() ?? editdata?.fee?.toString() ?? null
+                }
+                placeholder="Fee"
+                label={"Fee"}
+                maxLength={5}
+                keyboardType="numeric"
+                onChangeText={(nextValue) =>
+                  setData((prev) => ({ ...prev, fee: +nextValue }))
+                }
+              />
+            </View>
+            <Select
+              placeholder={data.payment ?? "Select payment"}
+              value={data.payment ?? null}
+              onSelect={(sel) => {
+                sel.row == 0
+                  ? setData((prev) => ({ ...prev, payment: "PHP" }))
+                  : setData((prev) => ({ ...prev, payment: "Gcash" }));
+              }}
+              label="Fee payment"
+              style={{ flex: 1 }}
+            >
+              <SelectItem title="PHP" />
+              <SelectItem title="Gcash" />
+            </Select>
+          </View>
+        </View>
+      </Card>
+    </Modal>
   );
 };
 

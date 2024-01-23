@@ -5,7 +5,7 @@ import { Alert, View } from "react-native";
 import { StyleSheet } from "react-native";
 
 import { format, toDate } from "date-fns";
-import { useUser, useRealm, useQuery } from "@realm/react";
+import { useUser, useRealm } from "@realm/react";
 
 export const ListAccessoriesShowcase = ({
   data,
@@ -15,6 +15,7 @@ export const ListAccessoriesShowcase = ({
 }) => {
   const realm = useRealm();
   const user = useUser();
+
   const renderItemAccessory = (data) => {
     return (
       <>
@@ -40,8 +41,8 @@ export const ListAccessoriesShowcase = ({
                   : data?.isTransfer
                   ? "danger"
                   : data.category !== "Cash in" && data.category !== "Load"
-                  ? "warning"
-                  : "success"
+                  ? "danger"
+                  : "info"
               }
               category="h6"
               style={{ fontSize: 14 }}
@@ -55,8 +56,8 @@ export const ListAccessoriesShowcase = ({
                   data?.isTransfer
                     ? "danger"
                     : data.category !== "Cash in" && data.category !== "Load"
-                    ? "warning"
-                    : "success"
+                    ? "danger"
+                    : "info"
                 }
               >
                 {data?.isTransfer ? `-${data?.fee}` : `+${data?.fee ?? "0"}`}

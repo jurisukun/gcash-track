@@ -7,8 +7,8 @@ import {
 } from "@ui-kitten/components";
 
 import Options from "./Options";
-import Dashboard from "./Dashboard";
-import { BottomTabNavigator } from "./Tab";
+import { Homestack } from "./Homestack";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Drawer = createDrawerNavigator();
@@ -20,8 +20,6 @@ const DrawerContent = ({ navigation, state }) => (
     onSelect={(index) => navigation.navigate(state.routeNames[index.row])}
   >
     <DrawerItem title="Dashboard" />
-
-    <DrawerItem title="Other" />
   </DrawerKit>
 );
 
@@ -65,8 +63,7 @@ export function AppNavigator() {
             sceneContainerStyle: { paddingTop: insets.top },
           }}
         >
-          <Drawer.Screen name="Dashboard" component={BottomTabNavigator} />
-          <Drawer.Screen name="Other" component={Options} />
+          <Drawer.Screen name="Home" component={Homestack} />
         </Drawer.Navigator>
       </NavigationContainer>
     </>

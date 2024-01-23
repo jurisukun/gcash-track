@@ -1,38 +1,52 @@
-import { Layout, Text, TopNavigation, Avatar } from "@ui-kitten/components";
-import gcash from "../../assets/g.png";
+import {
+  Layout,
+  Text,
+  TopNavigation,
+  Divider,
+  Icon,
+} from "@ui-kitten/components";
+
 import { ListAccessoriesShowcase } from "./EntryList";
 import { Capital } from "../lib/realm";
 import { View } from "react-native";
 import { useState } from "react";
-import { useQuery } from "@realm/react";
 
 import { useSubscribe } from "../lib/hooks/useTotal";
 import { CapitalModal } from "./CapitalModal";
 import Total from "./Total";
+import { useRoute } from "@react-navigation/native";
 
 export default function CapitalList() {
   const capital = useSubscribe().addCapitalSub;
   const [editdata, setEditData] = useState();
+  const route = useRoute();
 
   return (
     <Layout style={{ flex: 1 }}>
       <TopNavigation
-        title={() => {
-          return (
-            <View className="flex flex-row items-center justify-center gap-2 p-3">
-              <Avatar
-                source={gcash}
-                size="giant"
-                style={{
-                  width: 50,
-                  height: 50,
-                  objectFit: "contain",
-                }}
-              />
-              <Text category="h5">Tracker</Text>
-            </View>
-          );
-        }}
+        style={{ paddingHorizontal: 20, height: 60 }}
+        accessoryLeft={(props) => (
+          <View
+            className="flex flex-row"
+            style={{ gap: 10, alignItems: "center" }}
+          >
+            <Text category="h5" style={{ fontWeight: "700" }}>
+              {route.params.option}
+            </Text>
+            <Icon
+              {...props}
+              name={route?.params?.icon}
+              pack="feather"
+              fill="#CCCCFF"
+              style={{
+                width: 22,
+                height: 22,
+                margin: "auto",
+                color: "#CCCCFF",
+              }}
+            />
+          </View>
+        )}
         accessoryRight={() => {
           return (
             <View>
@@ -42,10 +56,8 @@ export default function CapitalList() {
             </View>
           );
         }}
-        style={{
-          height: 80,
-        }}
       />
+      <Divider />
       <ListAccessoriesShowcase
         data={capital}
         isCapital={true}

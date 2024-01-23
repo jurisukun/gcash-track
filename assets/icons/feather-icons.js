@@ -1,9 +1,9 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Feather";
 
-export const FontAwesomeIconsPack = {
-  name: "fontawesome",
+export const FeatherIconsPack = {
+  name: "feather",
   icons: createIconsMap(),
 };
 
@@ -19,10 +19,10 @@ function createIconsMap() {
 }
 
 const IconProvider = (name) => ({
-  toReactElement: (props) => FontAwesomeIcon({ name, ...props }),
+  toReactElement: (props) => FeatherIcon({ name, ...props }),
 });
 
-function FontAwesomeIcon({ name, style }) {
+function FeatherIcon({ name, style }) {
   const { height, tintColor, ...iconStyle } = StyleSheet.flatten(style);
   return <Icon name={name} size={height} color={tintColor} style={iconStyle} />;
 }
