@@ -170,6 +170,7 @@ export class CustomUserData extends Realm.Object {
       _id: "objectId",
       firstName: "string",
       lastName: "string",
+      username: "string?",
       userId: "string",
       createdAt: "date",
       updatedAt: {

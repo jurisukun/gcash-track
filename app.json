@@ -18,6 +18,7 @@
         }
       ]
     ],
+
     "splash": {
       "image": "./assets/finalicons/splash.png",
       "resizeMode": "contain",

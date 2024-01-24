@@ -1,4 +1,4 @@
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import {
   TopNavigation,
   Text,
@@ -34,6 +34,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import Homepage from "./Homepage";
 import SplashVideo from "./SplashVideo";
+// import { getTheme, updateTheme } from "../lib/sqlite";
 
 export default function Dashboard() {
   const [visible, setVisible] = useState(false);
@@ -96,6 +97,7 @@ export default function Dashboard() {
           ProfileImage,
           {
             ...defaultprofile,
+            userId: user.id,
             imgUri: imgdata,
           },
           true
@@ -103,6 +105,19 @@ export default function Dashboard() {
       });
     }
   };
+
+  useEffect(() => {
+    async function getTheme() {
+      const usertheme = await SecureStore.getItemAsync("usertheme");
+      return usertheme;
+    }
+    getTheme().then((res) => {
+      if (res != themeContext.deftheme) {
+        themeContext.toggleTheme();
+      }
+    });
+  }, []);
+
   return (
     <Layout
       style={{
@@ -135,7 +150,7 @@ export default function Dashboard() {
                 <View className="flex flex-row items-center justify-center  p-3">
                   <Avatar
                     source={
-                      defaultprofile
+                      defaultprofile?.imgUri
                         ? {
                             uri: `data:image/png;base64,${defaultprofile.imgUri}`,
                           }
@@ -191,6 +206,10 @@ export default function Dashboard() {
                         name={themeContext.deftheme == "light" ? "sun" : "moon"}
                         {...props}
                         onPress={async () => {
+                          // await updateTheme(
+                          //   user.id,
+                          //   themeContext.deftheme == "dark" ? "light" : "dark"
+                          // );
                           themeContext.toggleTheme();
                           await SecureStore.setItemAsync(
                             "usertheme",

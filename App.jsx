@@ -10,7 +10,7 @@ import { FeatherIconsPack } from "./assets/icons/feather-icons";
 import { IonicIconsPack } from "./assets/icons/ionicons";
 import { default as customtheme } from "./custom-theme.json"; // <-- Import app theme
 import { AppNavigator } from "./src/components/Drawer";
-import { initDatabase } from "./src/lib/sqlite";
+import { themeDatabase } from "./src/lib/sqlite";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeContext } from "./src/lib/theme-context";
 import { useState } from "react";
@@ -61,7 +61,6 @@ export default function App() {
   };
 
   SplashScreen.preventAutoHideAsync();
-
   setTimeout(SplashScreen.hideAsync, 1000);
 
   return (
@@ -82,12 +81,10 @@ export default function App() {
             theme={{ ...eva[deftheme], ...customtheme }}
           >
             <StatusBar
-            // style={deftheme == "light" ? "dark" : "light"}
-            // backgroundColor={
-            //   deftheme == "light"
-            //     ? "#fff"
-            //     : eva[deftheme]["color-basic-800"]
-            // }
+              style={deftheme == "light" ? "dark" : "light"}
+              backgroundColor={
+                deftheme == "light" ? "#fff" : eva[deftheme]["color-basic-800"]
+              }
             />
             <UserProvider fallback={<LoginRegisterinputs />}>
               <RealmProvider

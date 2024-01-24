@@ -41,9 +41,10 @@ export default function Homepage() {
           <Card
             key={index}
             style={{
-              width: 120,
+              width: "30%",
               aspectRatio: 1,
-              margin: 10,
+              marginHorizontal: "5%",
+              marginVertical: "4%",
               borderRadius: 20,
               borderWidth: 1,
               borderColor: "#9595DB",
