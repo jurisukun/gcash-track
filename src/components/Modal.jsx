@@ -20,7 +20,7 @@ import { format } from "date-fns";
 
 import { useRealm, useUser } from "@realm/react";
 import { GcashTransactions } from "../lib/realm";
-import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
+import { useTotalCashinCashoutFees } from "../lib/hooks/useTotal";
 
 export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   let today = new Date();
@@ -37,7 +37,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
 
   const realm = useRealm();
   const user = useUser();
-  const { totalGcashBalance, totalCashBalance } = useTotalGcashCashBalance();
+  const { totalGcashBalance, totalCashBalance } = useTotalCashinCashoutFees();
 
   const checkValues = (data) => {
     if (

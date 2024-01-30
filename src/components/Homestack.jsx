@@ -8,25 +8,27 @@ import {
   Icon,
 } from "@ui-kitten/components";
 import { createStackNavigator } from "@react-navigation/stack";
-import { ListAccessoriesShowcase } from "./EntryList";
+import { ListAccessoriesShowcase, StatsList } from "./EntryList";
 import { NavigationContainer, useRoute } from "@react-navigation/native";
 import Dashboard from "./Dashboard";
 import { ModalDialog } from "./Modal";
-import { useSubscribe } from "../lib/hooks/useTotal";
-import { GcashTransactions } from "../lib/realm";
+import { useSubscribe, useTotalCashinCashoutFees } from "../lib/hooks/useTotal";
+
 import Options from "./Options";
 import CapitalList from "./Capital";
-import SplashVideo from "./SplashVideo";
 
 export function RecordList() {
   const [editdata, setEditData] = useState();
   const route = useRoute();
 
   const { gcashSub } = useSubscribe();
+  const { monthlyStats } = useTotalCashinCashoutFees();
 
   let filtereddata =
     route.params.option == "Transfer"
       ? gcashSub.filtered("isTransfer==true")
+      : route.params.option == "Stats"
+      ? monthlyStats
       : gcashSub.filtered(
           "category==$0 AND isTransfer!= $1",
           route?.params?.option,
@@ -76,12 +78,15 @@ export function RecordList() {
         <ModalDialog editdata={editdata} setEditData={setEditData} />
       )}
 
-      <ListAccessoriesShowcase
-        data={filtereddata}
-        setEditData={setEditData}
-        schema={"GcashTransactions"}
-        isCapital={false}
-      />
+      {route.params.option !== "Stats" && (
+        <ListAccessoriesShowcase
+          data={filtereddata}
+          setEditData={setEditData}
+          schema={"GcashTransactions"}
+          isCapital={false}
+        />
+      )}
+      {route.params.option == "Stats" && <StatsList data={filtereddata} />}
     </Layout>
   );
 }

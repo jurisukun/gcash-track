@@ -26,7 +26,6 @@ import Balance from "./Balance";
 
 import { useSubscribe, useTotalCashinCashoutFees } from "../lib/hooks/useTotal";
 
-import { useTotalGcashCashBalance } from "../lib/hooks/useTotal";
 import { ProfileImage } from "../lib/realm";
 
 import { useUser, useRealm, useEmailPasswordAuth } from "@realm/react";
@@ -47,8 +46,14 @@ export default function Dashboard() {
   const user = useUser();
   const { logOut } = useEmailPasswordAuth();
 
-  const { cashintotal, cashintotalfee, cashouttotal, cashouttotalfee } =
-    useTotalCashinCashoutFees();
+  const {
+    cashintotal,
+    cashintotalfee,
+    cashouttotal,
+    cashouttotalfee,
+    totalCashBalance,
+    totalGcashBalance,
+  } = useTotalCashinCashoutFees();
 
   useEffect(() => {
     const createSubscription = async () => {
@@ -72,7 +77,6 @@ export default function Dashboard() {
   // setProfileImg(profilePicSub.filtered("userId == $0", user.id));
   const defaultprofile = profilePicSub.filtered("userId==$0", user.id)[0] ?? {};
 
-  const { totalCashBalance, totalGcashBalance } = useTotalGcashCashBalance();
   const balanceMap = [
     { label: "Gcash", addTo: "Gcash", balance: totalGcashBalance },
     { label: "PHP", addTo: "Cash", balance: totalCashBalance },
