@@ -40,14 +40,7 @@ export const ModalDialog = ({ visible, setVisible, editdata, setEditData }) => {
   const { totalGcashBalance, totalCashBalance } = useTotalCashinCashoutFees();
 
   const checkValues = (data) => {
-    if (
-      !data.description ||
-      !data.amount ||
-      !data.date ||
-      !data.category ||
-      !data.fee ||
-      !data.payment
-    ) {
+    if (!data.description || !data.date || !data.category || !data.payment) {
       Alert.alert(
         "Please fill all the fields",
         "Some required fields are empty"

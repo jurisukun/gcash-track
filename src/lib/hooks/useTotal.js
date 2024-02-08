@@ -45,28 +45,49 @@ export const useTotalCashinCashoutFees = () => {
     .filtered("category=='Gcash'")
     .sum("amount");
 
-  let monthlyStats = [];
+  console.log("------------start---------------");
+  console.log("Gcash-", totalGcashBalance, "Cash-", totalCashBalance);
+  console.log("\n");
 
-  // console.log("------------start---------------");
-  // console.log("Gcash-", totalGcashBalance, "Cash-", totalCashBalance);
-  let month;
-  let prevmonth = "January";
+  let totalpermonth = Array(12).fill(null);
+  let prevmonth = 0;
+
   useMemo(() => {
     gcashSub.filter((row, index) => {
-      // let st = ""
-      month = format(getMonth(row.date), "MMMM");
+      let st = "";
+
+      let monthIndex = getMonth(row.date);
+
+      if (monthIndex != prevmonth) {
+        prevmonth = monthIndex;
+        cashintotal = 0;
+        cashintotalfee = 0;
+        cashouttotal = 0;
+        cashouttotalfee = 0;
+
+        cashfee = 0;
+        gcashfee = 0;
+
+        cashouttransfer = 0;
+        cashintransfer = 0;
+        gcashtransferfee = 0;
+        cashtransferfee = 0;
+      }
 
       if (!row?.isTransfer && !row?.deletedAt) {
-        // st +=
-        //   row.description +
-        //   " " +
-        //   row.category +
-        //   " " +
-        //   row.amount +
-        //   " " +
-        //   row.fee +
-        //   " " +
-        // row.payment;
+        st +=
+          format(row.date, "MMM dd,yyyy  ") +
+          row.description +
+          " " +
+          row.category +
+          " " +
+          row.amount +
+          " " +
+          "\tFee = " +
+          row.fee +
+          " " +
+          row.payment +
+          "\n";
         if (row.category == "Cash in" || row.category == "Load") {
           totalGcashBalance -= row.amount;
           totalCashBalance += row.amount;
@@ -86,7 +107,7 @@ export const useTotalCashinCashoutFees = () => {
           gcashfee += row.fee;
         }
       } else if (row?.isTransfer && !row?.deletedAt) {
-        // console.log("transfer", row.category, row.amount, row.fee);
+        console.log("transfer", row.category, row.amount, "Fee = ", row.fee);
         if (row.category == "Cash in") {
           totalCashBalance += row.amount;
           cashintransfer += row.amount;
@@ -104,56 +125,30 @@ export const useTotalCashinCashoutFees = () => {
           totalGcashBalance -= row.fee;
         }
       }
-      let monthIndex = monthlyStats.findIndex((item) => item.month == month);
-      if (monthIndex !== -1) {
-        monthlyStats[monthIndex] = {
-          month,
-          cashintotal,
-          cashintotalfee,
-          cashouttotal,
-          cashouttotalfee,
-          cashfee,
-          gcashfee,
-          cashouttransfer,
-          cashintransfer,
-          cashtransferfee,
-          gcashtransferfee,
-        };
-      } else {
-        monthlyStats.push({
-          month,
-          cashintotal,
-          cashintotalfee,
-          cashouttotal,
-          cashouttotalfee,
-          cashfee,
-          gcashfee,
-          cashouttransfer,
-          cashintransfer,
-          cashtransferfee,
-          gcashtransferfee,
-        });
-      }
 
-      if (month != prevmonth) {
-        prevmonth = month;
-        cashintotal = 0;
-        cashintotalfee = 0;
-        cashouttotal = 0;
-        cashouttotalfee = 0;
+      totalpermonth[monthIndex] = {
+        month: format(row.date, "MMMM"),
+        cashintotal,
+        cashintotalfee,
+        cashouttotal,
+        cashouttotalfee,
+        cashfee,
+        gcashfee,
+        cashouttransfer,
+        cashintransfer,
+        cashtransferfee,
+        gcashtransferfee,
+      };
 
-        cashfee = 0;
-        gcashfee = 0;
-
-        cashouttransfer = 0;
-        cashintransfer = 0;
-        gcashtransferfee = 0;
-        cashtransferfee = 0;
-      }
-
-      // console.log(st);
-      // console.log("Gcash-", totalGcashBalance, "Cash-", totalCashBalance);
-      // console.log("\n");
+      console.log(st, "\n");
+      console.log(
+        "NEW BALANCE :   Gcash-",
+        totalGcashBalance,
+        "\t",
+        "Cash-",
+        totalCashBalance
+      );
+      console.log("\n");
     });
   }, [gcashSub]);
 
@@ -170,7 +165,7 @@ export const useTotalCashinCashoutFees = () => {
     gcashtransferfee,
     totalCashBalance,
     totalGcashBalance,
-    monthlyStats,
+    monthlyStats: totalpermonth,
   };
 };
 

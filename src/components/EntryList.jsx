@@ -1,5 +1,13 @@
 import React from "react";
-import { Icon, List, ListItem, Text, Divider } from "@ui-kitten/components";
+import {
+  Icon,
+  List,
+  ListItem,
+  Text,
+  Divider,
+  Select,
+  SelectItem,
+} from "@ui-kitten/components";
 
 import { Alert, View } from "react-native";
 import { StyleSheet } from "react-native";
@@ -29,9 +37,9 @@ export const ListAccessoriesShowcase = ({
               textAlign: "right",
             }}
           >
-            {data.category == "Load"
-              ? `${data.category} (${data.load})`
-              : data.category}
+            {data?.category == "Load"
+              ? `${data?.category} (${data?.load})`
+              : data?.category}
           </Text>
           <View className="flex flex-col space-x-1 items-end justify-center w-[80px] ]">
             <Text
@@ -40,14 +48,14 @@ export const ListAccessoriesShowcase = ({
                   ? "info"
                   : data?.isTransfer
                   ? "danger"
-                  : data.category !== "Cash in" && data.category !== "Load"
+                  : data?.category !== "Cash in" && data?.category !== "Load"
                   ? "danger"
                   : "info"
               }
               category="h6"
               style={{ fontSize: 14 }}
             >
-              ₱{data.amount}
+              ₱{data?.amount}
             </Text>
             {!isCapital && (
               <Text
@@ -55,7 +63,7 @@ export const ListAccessoriesShowcase = ({
                 status={
                   data?.isTransfer
                     ? "danger"
-                    : data.category !== "Cash in" && data.category !== "Load"
+                    : data?.category !== "Cash in" && data?.category !== "Load"
                     ? "danger"
                     : "info"
                 }
@@ -77,49 +85,59 @@ export const ListAccessoriesShowcase = ({
     />
   );
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item, index }) => {
+    return (
+      <>
+        <ListItem
+          style={{ paddingRight: 20 }}
+          id={item._id}
+          title={item.description}
+          description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
+          accessoryLeft={(props) => renderItemIcon(props, item)}
+          accessoryRight={() => renderItemAccessory(item)}
+          onPress={() => {
+            setEditData(item);
+          }}
+          onLongPress={() => {
+            Alert.alert(
+              "Delete",
+              "Are you sure you want to delete this entry?",
+              [
+                {
+                  text: "Cancel",
+                  onPress: () => console.log("Cancel Pressed"),
+                  style: "cancel",
+                },
+                {
+                  text: "Delete",
+                  onPress: () => {
+                    realm.write(() => {
+                      realm.create(
+                        schema,
+                        {
+                          ...item,
+                          deletedAt: new Date(),
+                          deletedBy: user.id,
+                        },
+                        true
+                      );
+                    });
+                  },
+                },
+              ]
+            );
+          }}
+        />
+        <Divider />
+      </>
+    );
+  };
+
+  return (
     <>
-      <ListItem
-        style={{ paddingRight: 20 }}
-        id={item._id}
-        title={item.description}
-        description={`${format(toDate(item.date), "MMM dd, yyyy")}`}
-        accessoryLeft={(props) => renderItemIcon(props, item)}
-        accessoryRight={() => renderItemAccessory(item)}
-        onPress={() => {
-          setEditData(item);
-        }}
-        onLongPress={() => {
-          Alert.alert("Delete", "Are you sure you want to delete this entry?", [
-            {
-              text: "Cancel",
-              onPress: () => console.log("Cancel Pressed"),
-              style: "cancel",
-            },
-            {
-              text: "Delete",
-              onPress: () => {
-                realm.write(() => {
-                  realm.create(
-                    schema,
-                    {
-                      ...item,
-                      deletedAt: new Date(),
-                      deletedBy: user.id,
-                    },
-                    true
-                  );
-                });
-              },
-            },
-          ]);
-        }}
-      />
-      <Divider />
+      <List style={styles.container} data={data} renderItem={renderItem} />
     </>
   );
-
-  return <List style={styles.container} data={data} renderItem={renderItem} />;
 };
 
 export const StatsList = ({ data }) => {
@@ -144,7 +162,7 @@ export const StatsList = ({ data }) => {
               status="success"
               style={{ color: "yellowgreen" }}
             >
-              +{data.cashintotalfee}
+              +{data?.cashintotalfee}
             </Text>
           </View>
           <View className="flex flex-col space-x-1 items-center justify-center ">
@@ -153,7 +171,7 @@ export const StatsList = ({ data }) => {
               ₱{data?.cashouttotal ?? "0"}
             </Text>
             <Text category="s2" status="info">
-              +{data.cashouttotalfee}
+              +{data?.cashouttotalfee}
             </Text>
           </View>
           <View className="flex flex-col space-x-1 items-center justify-center ">
@@ -162,15 +180,15 @@ export const StatsList = ({ data }) => {
               -₱{data?.cashtransferfee ?? "0"}
             </Text>
             <Text category="s2" status="danger" style={{ fontSize: 12 }}>
-              -₱{data.gcashtransferfee}
+              -₱{data?.gcashtransferfee}
             </Text>
           </View>
           <View className="flex flex-col space-x-1 items-center justify-center ">
             <Text category="h6" status="primary" style={{ fontSize: 16 }}>
               +₱
               {data?.cashouttotalfee +
-                data.cashintotalfee -
-                (data.gcashtransferfee + data.cashtransferfee) ?? "0"}
+                data?.cashintotalfee -
+                (data?.gcashtransferfee + data?.cashtransferfee) ?? "0"}
             </Text>
           </View>
         </View>
@@ -196,17 +214,21 @@ export const StatsList = ({ data }) => {
     </View>
   );
 
-  const renderItem = ({ item, index }) => (
-    <>
-      <ListItem
-        style={{ height: 80 }}
-        id={index}
-        accessoryLeft={(props) => renderItemIcon(props, item)}
-        accessoryRight={() => renderItemAccessory(item)}
-      />
-      <Divider />
-    </>
-  );
+  const renderItem = ({ item, index }) => {
+    if (item) {
+      return (
+        <>
+          <ListItem
+            style={{ height: 80 }}
+            id={index}
+            accessoryLeft={(props) => renderItemIcon(props, item)}
+            accessoryRight={() => renderItemAccessory(item)}
+          />
+          <Divider />
+        </>
+      );
+    }
+  };
 
   return <List style={styles.container} data={data} renderItem={renderItem} />;
 };

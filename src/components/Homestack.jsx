@@ -6,6 +6,8 @@ import {
   TopNavigation,
   Divider,
   Icon,
+  Select,
+  SelectItem,
 } from "@ui-kitten/components";
 import { createStackNavigator } from "@react-navigation/stack";
 import { ListAccessoriesShowcase, StatsList } from "./EntryList";
@@ -24,6 +26,19 @@ export function RecordList() {
   const { gcashSub } = useSubscribe();
   const { monthlyStats } = useTotalCashinCashoutFees();
 
+  const [descending, setDescending] = React.useState(true);
+  const [sortBy, setSortBy] = React.useState("date");
+  const [index, setIndex] = React.useState(0);
+
+  const sortOptions = [
+    "Date (Desc)",
+    "Date (Asc)",
+    "Description (Z-A)",
+    "Description (A-Z)",
+    "Price (High-Low)",
+    "Price (Low-High)",
+  ];
+
   let filtereddata =
     route.params.option == "Transfer"
       ? gcashSub.filtered("isTransfer==true")
@@ -35,6 +50,10 @@ export function RecordList() {
           true
         );
 
+  const sortedData =
+    route.params.option == "Stats"
+      ? filtereddata
+      : filtereddata?.sorted(sortBy, descending);
   return (
     <Layout
       style={{
@@ -51,7 +70,7 @@ export function RecordList() {
         style={{ paddingHorizontal: 20, height: 60 }}
         accessoryLeft={(props) => (
           <View
-            className="flex flex-row"
+            className="flex flex-row "
             style={{ gap: 10, alignItems: "center" }}
           >
             <Text category="h5" style={{ fontWeight: "700" }}>
@@ -71,6 +90,38 @@ export function RecordList() {
             />
           </View>
         )}
+        accessoryRight={(props) =>
+          route.params.option !== "Stats" && (
+            <Select
+              value={sortOptions[index]}
+              style={{ width: 150 }}
+              onSelect={(sel) => {
+                setIndex(sel.row);
+                if ((sel.row + 1) % 2 == 0) {
+                  setDescending(false);
+                } else {
+                  setDescending(true);
+                }
+                switch (sel.row) {
+                  case 0 || 1:
+                    setSortBy("date");
+                    break;
+                  case 2 || 3:
+                    setSortBy("description");
+                    break;
+                  case 4 || 5:
+                    setSortBy("amount");
+                    break;
+                }
+              }}
+              placeholder="Sort by"
+            >
+              {sortOptions.map((item, index) => (
+                <SelectItem key={index} title={item} />
+              ))}
+            </Select>
+          )
+        }
       />
       <Divider />
 
@@ -80,13 +131,13 @@ export function RecordList() {
 
       {route.params.option !== "Stats" && (
         <ListAccessoriesShowcase
-          data={filtereddata}
+          data={sortedData}
           setEditData={setEditData}
           schema={"GcashTransactions"}
           isCapital={false}
         />
       )}
-      {route.params.option == "Stats" && <StatsList data={filtereddata} />}
+      {route.params.option == "Stats" && <StatsList data={sortedData} />}
     </Layout>
   );
 }

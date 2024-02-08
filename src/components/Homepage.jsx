@@ -14,7 +14,7 @@ const options = [
   "Capital",
   "Debts",
   "Stats",
-  "Upcoming",
+  "Soon...",
 ];
 const icons = [
   "download",
